@@ -1,0 +1,58 @@
+{
+  "general": {
+    "default_speed": 10,
+    "parser_directory": "./data-berkeley/parser/",
+    "candidate_parser": "ElectionCandidateParser",
+    "ballot_parser": "ElectionBallotParser"
+  },
+  "races": [
+    {
+      "race_id": 1,
+      "race_position": "Senator",
+      "race_max_winners": 8,
+      "race_extended_data": {
+        "parser_group": "senator"
+      }
+    },
+    {
+      "race_id": 2,
+      "race_position": "Academic Affairs Vice President",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "academic_vp"
+      }
+    },
+    {
+      "race_id": 3,
+      "race_position": "External Affairs Vice President",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "external_vp"
+      }
+    },
+    {
+      "race_id": 4,
+      "race_position": "Executive Vice President",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "executive_vp"
+      }
+    },
+    {
+      "race_id": 5,
+      "race_position": "Student Advocate",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "student_advocate"
+      }
+    },
+    {
+      "race_id": 6,
+      "race_position": "President",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "president"
+      }
+    }
+  ]
+}

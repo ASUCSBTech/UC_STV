@@ -1,0 +1,2 @@
+class ElectionRaceError(Exception):
+    pass
