@@ -4,171 +4,220 @@ from ElectionRaceError import ElectionRaceError
 
 class ElectionRaceRound:
     (INCOMPLETE, COMPLETE) = range(2)
+    (CANDIDATE_PRE_STATE, CANDIDATE_POST_STATE) = range(2)
+    (CACHE_STALE, CACHE_OK) = range(2)
 
-    def __init__(self, parent, round):
-        self.round = round
-        self.parent = parent
-        self.voters = []
-        self.candidates = {}
-        self.candidates_tabulation = {}
-        self.state = self.INCOMPLETE
+    def __init__(self, election_parent, election_round):
+        self._round = election_round
+        self._parent = election_parent
+        self._voters = []
+        self._ballots = []
+        self._candidates = []
 
-    def voter_add(self, voter):
-        self.voters.append(voter)
+        # Voter ballot relationship.
+        self._voter_ballot = {}
 
-    def voter_count(self):
-        return len(self.voters)
+        # Candidate ballot relationship.
+        self._candidate_ballot = {None: []}
 
-    def get_voters(self):
-        return self.voters
+        # Candidate score relationship.
+        self._candidate_score = {None: 0}
 
-    def get_round(self):
-        return self.round
+        # Candidate states before and after tabulation.
+        self._candidate_pre_state = {}
+        self._candidate_post_state = {}
 
-    def get_running_candidates(self):
-        running_candidates = []
-        for candidate in self.candidates:
-            if self.candidate_state_get(candidate, tabulation=False).get_state() == ElectionCandidateState.RUNNING:
-                running_candidates.append(candidate)
-        return running_candidates
+        # Candidates pre-state cache.
+        self._cache_candidate_pre_state = self.CACHE_STALE
+        self._cache_candidate_pre = None
 
-    def state_get(self):
-        return self.state
+        # Candidates post-state cache.
+        self._cache_candidate_post_state = self.CACHE_STALE
+        self._cache_candidate_post = None
 
-    def candidate_add(self, candidate, state):
-        self.candidates[candidate] = state
+        self._state = self.INCOMPLETE
 
-    def candidate_state_get(self, candidate, tabulation=True):
-        if tabulation and candidate in self.candidates_tabulation:
-            return self.candidates_tabulation[candidate]
-        return self.candidates[candidate]
+    def round(self):
+        return self._round
 
-    def get_round_votes(self):
-        results = {}
+    def parent(self):
+        return self._parent
 
-        ballots = self.get_round_ballots()
+    def voters(self):
+        return self._voters
 
-        for candidate in self.candidates:
-            candidate_state = self.candidate_state_get(candidate, tabulation=False)
-            if candidate_state.get_state() == ElectionCandidateState.RUNNING:
-                ballot_total_value = 0
-                for ballot in ballots:
-                    if ballot.get_candidate() != candidate:
-                        continue
-                    ballot_total_value += ballot.get_value()
-                results[candidate] = ballot_total_value
-            elif candidate_state.get_state() == ElectionCandidateState.ELIMINATED:
-                results[candidate] = 0
-            elif candidate_state.get_state() == ElectionCandidateState.WON:
-                results[candidate] = self.parent.get_droop_quota()
+    def ballots(self):
+        return self._ballots
 
-        # Check for exhausted ballots.
-        exhausted_vote_value = 0
-        for ballot in ballots:
-            if ballot.get_candidate() is None:
-                exhausted_vote_value += ballot.get_value()
-        results[None] = exhausted_vote_value
+    def candidates(self):
+        return self._candidates
 
-        return results
+    def state(self):
+        return self._state
 
-    def get_round_ballots(self):
-        eligible_candidates = []
-        for candidate in self.candidates:
-            if self.candidate_state_get(candidate, tabulation=False).get_state() == ElectionCandidateState.RUNNING:
-                eligible_candidates.append(candidate)
+    def add_ballot(self, ballot):
+        # The round can only be modified prior to completion.
+        if self._state is self.COMPLETE:
+            raise ElectionRaceError("Election round is already complete.")
 
-        ballots = []
-        for voter in self.voters:
-            ballots.append(voter.race_get_voter_round_ballot(self.parent, self, eligible_candidates))
+        if ballot.voter() in self._voters:
+            raise ElectionRaceError("Ballot already exists for voter.")
 
-        return ballots
+        if ballot.candidate() is not None and ballot.candidate() not in self._candidates:
+            raise ElectionRaceError("Candidate is not a valid candidate for election round.")
 
-    def get_previous_round_lowest(self, candidate_a, candidate_b):
-        previous_round = self.parent.round_get_previous(self)
+        self._voters.append(ballot.voter())
+        self._ballots.append(ballot)
+        self._voter_ballot[ballot.voter()] = ballot
+        self._candidate_ballot[ballot.candidate()].append(ballot)
+        self._candidate_score[ballot.candidate()] += ballot.value()
 
-        # If there is no previous round, then raise an error.
-        if previous_round is None:
-            raise ElectionRaceError()
+    def add_candidate(self, candidate, state):
+        # The round can only be modified prior to completion.
+        if self._state is self.COMPLETE:
+            raise ElectionRaceError("Election round is already complete.")
 
-        previous_round_votes = previous_round.get_round_votes()
-        if previous_round_votes[candidate_a] > previous_round_votes[candidate_b]:
-            return candidate_a
-        elif previous_round_votes[candidate_a] < previous_round_votes[candidate_b]:
-            return candidate_b
-        elif previous_round_votes[candidate_a] == previous_round_votes[candidate_b]:
-            return previous_round.get_previous_round_lowest(candidate_a, candidate_b)
+        if candidate in self._candidates:
+            raise ElectionRaceError("Candidate already added to election round.")
 
-    def tabulate(self):
-        # Check for winners.
-        previous_winners = self.parent.get_winners()
-        remaining_spots = self.parent.get_max_winners() - len(previous_winners)
+        self._candidates.append(candidate)
+        self._candidate_ballot[candidate] = []
+        self._candidate_score[candidate] = 0
+        self._set_candidate_state(candidate, state, state_type=self.CANDIDATE_PRE_STATE)
 
-        round_votes = self.get_round_votes()
-        ballot_results = self.get_round_ballots()
-        running_candidates = self.get_running_candidates()
+    def set_candidate_state(self, candidate, state):
+        # The round can only be modified prior to completion.
+        if self._state is self.COMPLETE:
+            raise ElectionRaceError("Election round is already complete.")
 
-        # If running candidates remaining equals the number of remaining spots,
-        # immediately elect them all.
-        if len(running_candidates) <= remaining_spots:
-            for candidate in running_candidates:
-                self.candidates_tabulation[candidate] = ElectionCandidateState(candidate, ElectionCandidateState.WON)
-            self.state = self.COMPLETE
-            return
+        self._set_candidate_state(candidate, state, self.CANDIDATE_POST_STATE)
 
-        winning_candidates = []
-        for candidate in running_candidates:
-            if round_votes[candidate] >= self.parent.get_droop_quota():
-                winning_candidates.append(candidate)
+    def _set_candidate_state(self, candidate, state, state_type=None):
+        # The round can only be modified prior to completion.
+        if self._state is self.COMPLETE:
+            raise ElectionRaceError("Election round is already complete.")
 
-        # Automatically eliminate candidates that are still running but received zero votes.
-        for candidate in running_candidates:
-            if round_votes[candidate] == 0:
-                self.candidates_tabulation[candidate] = ElectionCandidateState(candidate,
-                                                                               ElectionCandidateState.ELIMINATED)
-                running_candidates.remove(candidate)
+        # The default state type is post state.
+        if state_type is None:
+            state_type = self.CANDIDATE_POST_STATE
 
-        # If there are no winning candidates, this becomes a elimination round.
-        if not winning_candidates:
-            lowest_candidate_score = round_votes[running_candidates[0]]
-            lowest_candidates = [running_candidates[0]]
+        if state_type is self.CANDIDATE_PRE_STATE:
+            self._candidate_pre_state[candidate] = state
+            self._cache_candidate_pre_state = self.CACHE_STALE
+        elif state_type is self.CANDIDATE_POST_STATE:
+            self._candidate_post_state[candidate] = state
+            self._cache_candidate_post_state = self.CACHE_STALE
+        else:
+            raise TypeError("State type must be either CANDIDATE_PRE_STATE or CANDIDATE_POST_STATE.")
 
-            for candidate in running_candidates:
-                if round_votes[candidate] < lowest_candidate_score:
-                    lowest_candidate_score = round_votes[candidate]
-                    lowest_candidates = [candidate]
-                elif round_votes[candidate] == lowest_candidate_score:
-                    lowest_candidates.append(candidate)
+    def get_candidate_state(self, candidate, state_type=None):
+        # Check that the candidate is in the round.
+        if candidate not in self._candidates:
+            raise ElectionRaceError("Candidate is not participating in this race.")
 
-            for candidate in lowest_candidates:
-                self.candidates_tabulation[candidate] = ElectionCandidateState(candidate,
-                                                                               ElectionCandidateState.ELIMINATED)
-            self.state = self.COMPLETE
-            return
+        # The default state type is post state.
+        if state_type is None:
+            state_type = self.CANDIDATE_POST_STATE
 
-        # Sort winning candidates by descending order of votes.
-        winning_candidates = sorted(winning_candidates, key=lambda winning_candidate: round_votes[winning_candidate])
+        if state_type is self.CANDIDATE_PRE_STATE:
+            return self._candidate_pre_state[candidate]
+        elif state_type is self.CANDIDATE_POST_STATE:
+            # Post state is an override of the candidate pre-state,
+            # if the candidate has no overridden state, then the
+            # pre-state is returned.
+            if candidate not in self._candidate_post_state:
+                return self._candidate_pre_state[candidate]
 
-        # Check to see if there are enough spots to add all the winners
-        if len(winning_candidates) > remaining_spots:
-            # Remove individuals not in the top X number of spots
-            # where X is the number of remaining spots.
-            winning_candidates = winning_candidates[:remaining_spots]
-            # TODO: Resolve issue where there may be "winning" candidates at the end with the same score
+            return self._candidate_post_state[candidate]
+        else:
+            raise TypeError("State type must be either CANDIDATE_PRE_STATE or CANDIDATE_POST_STATE.")
 
-        for candidate in winning_candidates:
-            self.candidates_tabulation[candidate] = ElectionCandidateState(candidate, ElectionCandidateState.WON)
-            surplus = round_votes[candidate] - self.parent.get_droop_quota()
-            transfer_value = surplus / round_votes[candidate]
-            for ballot in ballot_results:
-                if ballot.get_candidate() == candidate:
-                    ballot_voter = ballot.get_voter()
-                    ballot_voter.race_set_voter_value(self.parent, self, ballot.get_value() * transfer_value)
+    def get_candidates_state(self, state_type=None):
+        if state_type is None:
+            state_type = self.CANDIDATE_POST_STATE
 
-        self.state = self.COMPLETE
+        candidates_state = {}
+        for candidate in self._candidates:
+            candidates_state[candidate] = self.get_candidate_state(candidate, state_type)
 
-    def winners_get(self):
-        winning_candidates = []
-        for candidate in self.candidates:
-            if self.candidate_state_get(candidate).get_state() == ElectionCandidateState.WON:
-                winning_candidates.append(candidate)
-        return winning_candidates
+        return candidates_state
+
+    # Gets candidates grouped by the state of each candidate.
+    def get_candidates_by_state(self, state_type=None, use_cache=True):
+        if state_type is None:
+            state_type = self.CANDIDATE_POST_STATE
+
+        if use_cache and (state_type is self.CANDIDATE_PRE_STATE) and \
+                (self._cache_candidate_pre_state is not self.CACHE_STALE) and \
+                (self._cache_candidate_pre is not None):
+            return self._cache_candidate_pre
+
+        if use_cache and (state_type is self.CANDIDATE_POST_STATE) and \
+                (self._cache_candidate_post_state is not self.CACHE_STALE) and \
+                (self._cache_candidate_post is not None):
+            return self._cache_candidate_post
+
+        candidate_group_states = {ElectionCandidateState.RUNNING: [], ElectionCandidateState.WON: [],
+                                  ElectionCandidateState.ELIMINATED: []}
+
+        for candidate in self._candidates:
+            candidate_group_states[self.get_candidate_state(candidate, state_type).state()].append(candidate)
+
+        if state_type is self.CANDIDATE_PRE_STATE:
+            self._cache_candidate_pre = candidate_group_states
+            self._cache_candidate_pre_state = self.CACHE_OK
+        elif state_type is self.CANDIDATE_POST_STATE:
+            self._cache_candidate_post = candidate_group_states
+            self._cache_candidate_post_state = self.CACHE_OK
+
+        return candidate_group_states
+
+    # Gets candidate that have had their state changed.
+    def get_candidates_changed(self):
+        candidates = []
+
+        for candidate in self._candidate_post_state:
+            candidates.append(candidate)
+
+        return candidates
+
+    def get_candidate_score(self, candidate):
+        if candidate is not None and candidate not in self._candidates:
+            raise LookupError("Unable to locate candidate.")
+
+        return self._candidate_score[candidate]
+
+    def get_candidates_score(self):
+
+        candidate_scores = {}
+
+        for candidate in self._candidates:
+            candidate_scores[candidate] = self.get_candidate_score(candidate)
+
+        # Also include the number of votes that have been exhausted.
+        candidate_scores[None] = self.get_candidate_score(None)
+
+        return candidate_scores
+
+    def get_candidate_voters(self, candidate):
+        if candidate is not None and candidate not in self._candidates:
+            raise LookupError("Unable to locate candidate.")
+
+        voters = []
+
+        for ballot in self.get_candidate_ballots(candidate):
+            voters.append(ballot.voter())
+
+        return voters
+
+    def get_candidate_ballots(self, candidate):
+        if candidate is not None and candidate not in self._candidates:
+            raise LookupError("Unable to locate candidate.")
+
+        return self._candidate_ballot[candidate]
+
+    def complete(self):
+        # The state is set to complete once the round is
+        # considered done; this locks all changes allowed
+        # to the round's data.
+        self._state = self.COMPLETE

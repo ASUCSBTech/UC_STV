@@ -9,9 +9,10 @@
     {
       "race_id": 1,
       "race_position": "Senator",
-      "race_max_winners": 8,
+      "race_max_winners": 20,
       "race_extended_data": {
-        "parser_group": "senator"
+        "parser_group": "senator",
+        "display_order": 6
       }
     },
     {
@@ -19,7 +20,8 @@
       "race_position": "Academic Affairs Vice President",
       "race_max_winners": 1,
       "race_extended_data": {
-        "parser_group": "academic_vp"
+        "parser_group": "academic_vp",
+        "display_order": 4
       }
     },
     {
@@ -27,7 +29,8 @@
       "race_position": "External Affairs Vice President",
       "race_max_winners": 1,
       "race_extended_data": {
-        "parser_group": "external_vp"
+        "parser_group": "external_vp",
+        "display_order": 3
       }
     },
     {
@@ -35,7 +38,8 @@
       "race_position": "Executive Vice President",
       "race_max_winners": 1,
       "race_extended_data": {
-        "parser_group": "executive_vp"
+        "parser_group": "executive_vp",
+        "display_order": 2
       }
     },
     {
@@ -43,7 +47,8 @@
       "race_position": "Student Advocate",
       "race_max_winners": 1,
       "race_extended_data": {
-        "parser_group": "student_advocate"
+        "parser_group": "student_advocate",
+        "display_order": 5
       }
     },
     {
@@ -51,7 +56,8 @@
       "race_position": "President",
       "race_max_winners": 1,
       "race_extended_data": {
-        "parser_group": "president"
+        "parser_group": "president",
+        "display_order": 1
       }
     }
   ]
