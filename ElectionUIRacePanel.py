@@ -70,7 +70,7 @@ class ElectionUIRacePanel(wx.Panel):
         # Resize the columns to the correct size.
         self.grid.AutoSizeColumns(setAsMin=False)
         self.grid.SetColSize(2, 90)
-        self.grid.SetColSize(3, 90)
+        self.grid.SetColSize(3, 110)
         self.on_size(None)
         wx.Yield()
 
@@ -173,6 +173,7 @@ class ElectionUIRacePanel(wx.Panel):
                     ElectionRaceRound.CANDIDATE_POST_STATE)
 
             scores = self._election_round.get_candidates_score()
+            droop_quota = self._election_round.parent().droop_quota()
 
             new_table_rows = []
             score_resolution = 4
@@ -191,8 +192,8 @@ class ElectionUIRacePanel(wx.Panel):
                     candidate.name(),
                     candidate.party(),
                     self._candidate_states[ElectionCandidateState.WON],
-                    self.round_down(candidate_score, score_resolution),
-                    candidate_score / self._election_round.parent().droop_quota()
+                    str(droop_quota) + " (" + str(self.round_down(candidate_score, score_resolution)) + ")",
+                    candidate_score / droop_quota
                 ])
 
             table_group_running = sorted(candidate_state_groups[ElectionCandidateState.RUNNING],
@@ -204,7 +205,7 @@ class ElectionUIRacePanel(wx.Panel):
                     candidate.party(),
                     self._candidate_states[ElectionCandidateState.RUNNING],
                     self.round_down(candidate_score, score_resolution),
-                    candidate_score / self._election_round.parent().droop_quota()
+                    candidate_score / droop_quota
                 ])
 
             table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED],
