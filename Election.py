@@ -1,5 +1,7 @@
 import sys
 import os
+import importlib
+import importlib.machinery
 from ElectionRace import ElectionRace
 from ElectionCandidate import ElectionCandidate
 from ElectionVoter import ElectionVoter
@@ -25,13 +27,17 @@ class Election:
             except ValueError:
                 raise ElectionError("Configuration error, unable to parse max winners of %s." % race["race_position"])
 
-        if os.path.isdir(os.path.abspath(configuration["general"]["parser_directory"])):
-            sys.path[0:0] = [os.path.abspath(configuration["general"]["parser_directory"])]
-        else:
+        parser_directory_path = os.path.abspath(configuration["general"]["parser_directory"]) + "/"
+        if not os.path.isdir(parser_directory_path):
             raise ElectionError("Configuration error, parser directory is not a valid path.")
 
-        self.ballot_parser = __import__(configuration["general"]["ballot_parser"])
-        self.candidate_parser = __import__(configuration["general"]["candidate_parser"])
+        importlib.invalidate_caches()
+        self.ballot_parser = importlib.machinery.SourceFileLoader(configuration["general"]["ballot_parser"],
+                                                                  parser_directory_path + configuration["general"][
+                                                                      "ballot_parser"] + ".py").load_module()
+        self.candidate_parser = importlib.machinery.SourceFileLoader(configuration["general"]["candidate_parser"],
+                                                                     parser_directory_path + configuration["general"][
+                                                                         "candidate_parser"] + ".py").load_module()
 
     def load_candidates(self, candidate_file_path):
         candidate_data = self.candidate_parser.parse(candidate_file_path, self._races)

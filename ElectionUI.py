@@ -197,26 +197,24 @@ class ElectionUI(wx.Frame):
         self.button_complete_round.SetFocus()
 
     def ui_complete_round(self, event):
-        # Disable the complete current round/race button
-        # and also disable the race change combo box.
-        self.button_complete_race.Enable(False)
-        self.button_complete_round.Enable(False)
-        self.combo_box_race.Enable(False)
-        self.combo_box_round.Enable(False)
+        self.ui_disable_all()
 
         # Complete the current race.
         wx.lib.delayedresult.startWorker(self.ui_complete_action_done, self.complete_current_round)
 
     def ui_complete_race(self, event):
+        self.ui_disable_all()
+
+        # Complete the current round.
+        wx.lib.delayedresult.startWorker(self.ui_complete_action_done, self.complete_current_race)
+
+    def ui_disable_all(self):
         # Disable the complete current round/race button
         # and also disable the race change combo box.
         self.button_complete_race.Enable(False)
         self.button_complete_round.Enable(False)
         self.combo_box_race.Enable(False)
         self.combo_box_round.Enable(False)
-
-        # Complete the current round.
-        wx.lib.delayedresult.startWorker(self.ui_complete_action_done, self.complete_current_race)
 
     def ui_complete_action_done(self, result):
         self.combo_box_race.Enable(True)
@@ -236,6 +234,8 @@ class ElectionUI(wx.Frame):
             with open(election_configuration_file.GetPath(), encoding="utf-8") as configuration_file:
                 configuration = json.loads(configuration_file.read())
                 self.election = Election(configuration)
+                self.ui_disable_all()
+                self.grid_display.destroy_grid()
                 self.menu_file_load_candidates.Enable(True)
                 self.menu_file_load_ballots.Enable(False)
                 return

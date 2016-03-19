@@ -74,6 +74,13 @@ class ElectionUIRacePanel(wx.Panel):
         self.on_size(None)
         wx.Yield()
 
+    def destroy_grid(self):
+        self.sizer.Remove(0)
+        self.grid = self.create_grid(None)
+
+        self.sizer.Add(self.grid, 1, wx.ALL | wx.EXPAND, 0)
+        self.sizer.Layout()
+
     def create_grid(self, election_round):
         new_grid = wx.grid.Grid(self, wx.ID_ANY)
         new_grid.SetTable(ElectionUIRacePanel.RaceGridData(None), True)
