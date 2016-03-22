@@ -238,6 +238,8 @@ class ElectionUI(wx.Frame):
                 self.grid_display.destroy_grid()
                 self.menu_file_load_candidates.Enable(True)
                 self.menu_file_load_ballots.Enable(False)
+                if "default_speed" in configuration["general"]:
+                    self.slider_display_speed.SetValue(configuration["general"]["default_speed"])
                 return
         except (KeyError, IOError):
             wx.MessageBox("Unable to load configuration file.", "Load Error", wx.OK | wx.ICON_ERROR)

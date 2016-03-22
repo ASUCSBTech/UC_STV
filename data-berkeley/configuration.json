@@ -1,6 +1,5 @@
 {
   "general": {
-    "default_speed": 10,
     "parser_directory": "./data-berkeley/parser/",
     "candidate_parser": "ElectionCandidateParser",
     "ballot_parser": "ElectionBallotParser"

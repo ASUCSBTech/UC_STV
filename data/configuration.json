@@ -1,6 +1,6 @@
 {
   "general": {
-    "default_speed": 10,
+    "default_speed": 90,
     "parser_directory": "./data/parser/",
     "candidate_parser": "ElectionCandidateParser",
     "ballot_parser": "ElectionBallotParser"
