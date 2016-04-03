@@ -3,7 +3,7 @@ from ElectionRaceVoterBallot import ElectionRaceVoterBallot
 
 class ElectionVoter:
     def __init__(self, id):
-        self.id = id
+        self._id = id
         self._races = []
         self._race_preferences = {}
         self._race_value = {}
@@ -49,3 +49,9 @@ class ElectionVoter:
     def _get_voter_preference(self, race, candidates):
         return next((preferred_candidate for preferred_candidate in self._race_preferences[race]
                      if preferred_candidate in candidates), None)
+
+    def __str__(self):
+        return str(self._id)
+
+    def __repr__(self):
+        return str(self._id)

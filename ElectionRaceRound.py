@@ -221,3 +221,9 @@ class ElectionRaceRound:
         # considered done; this locks all changes allowed
         # to the round's data.
         self._state = self.COMPLETE
+
+    def __str__(self):
+        return str(self._round)
+
+    def __repr__(self):
+        return str(self._round)

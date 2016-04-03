@@ -1,7 +1,10 @@
 import wx
 import wx.lib.delayedresult
+import wx.adv
 import json
 import time
+import logging
+import sys
 from Election import Election
 from ElectionUIRacePanel import ElectionUIRacePanel
 from ElectionRace import ElectionRace
@@ -12,6 +15,8 @@ class ElectionUI(wx.Frame):
 
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(900, 680))
+
+        self.logger = logging.getLogger("application.ui")
 
         self.election = None
 
@@ -33,6 +38,8 @@ class ElectionUI(wx.Frame):
         self.menu_file_load_candidates = None
         self.menu_file_load_ballots = None
         self.menu_file_test = None
+        self.menu_help = None
+        self.menu_help_about = None
 
         # Display select controls.
         self.panel_display_select = None
@@ -75,8 +82,11 @@ class ElectionUI(wx.Frame):
         self.show_ui()
         self.Centre()
         self.Show()
+        self.logger.info("Main application UI displayed.")
 
     def show_ui(self):
+        self.logger.info("Creating main application UI.")
+
         # Status Bar
         self.CreateStatusBar()
 
@@ -105,6 +115,15 @@ class ElectionUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.ui_load_ballot, self.menu_file_load_ballots)
 
         self.menu.Append(self.menu_file, "&File")
+
+        # Help Menu
+        self.menu_help = wx.Menu()
+
+        # Help Menu > About
+        self.menu_help_about = self.menu_help.Append(wx.ID_ABOUT, "&About UCSB AS Election Tabulator")
+        self.Bind(wx.EVT_MENU, self.show_about, self.menu_help_about)
+
+        self.menu.Append(self.menu_help, "&Help")
 
         self.SetMenuBar(self.menu)
 
@@ -182,6 +201,17 @@ class ElectionUI(wx.Frame):
         self.SetMinSize((750, 500))
         self.Layout()
 
+    def show_about(self, event):
+        about_info = wx.adv.AboutDialogInfo()
+        about_info.SetName("UCSB AS Election Tabulator")
+        about_info.SetVersion("1.0")
+        about_info.SetDescription("Displays and tabulates voter ballots utilizing a single transferrable vote system\nwith support for custom election configurations and dynamic ballot format parsing.")
+        about_info.SetCopyright("Copyright (C) 2016 The Regents of the University of California.")
+        about_info.SetWebSite("https://www.as.ucsb.edu/")
+        about_info.AddDeveloper("Ryan Tse <tse@umail.ucsb.edu>")
+
+        wx.adv.AboutBox(about_info, self)
+
     def ui_combobox_event(self, event):
         if event.GetEventObject() is self.combo_box_race:
             self.change_race(self.combo_box_race_object[self.combo_box_race.GetStringSelection()])
@@ -231,6 +261,7 @@ class ElectionUI(wx.Frame):
             return
 
         try:
+            self.logger.debug("Opening election configuration file `%s`.", election_configuration_file.GetPath())
             with open(election_configuration_file.GetPath(), encoding="utf-8") as configuration_file:
                 configuration = json.loads(configuration_file.read())
                 self.election = Election(configuration)
@@ -239,9 +270,11 @@ class ElectionUI(wx.Frame):
                 self.menu_file_load_candidates.Enable(True)
                 self.menu_file_load_ballots.Enable(False)
                 if "default_speed" in configuration["general"]:
+                    self.logger.debug("Default tabulation speed set at `%d`.", configuration["general"]["default_speed"])
                     self.slider_display_speed.SetValue(configuration["general"]["default_speed"])
                 return
-        except (KeyError, IOError):
+        except (KeyError, IOError) as err:
+            self.logger.error("Unable to parse configuration file.", exc_info=sys.exc_info())
             wx.MessageBox("Unable to load configuration file.", "Load Error", wx.OK | wx.ICON_ERROR)
             return
 
