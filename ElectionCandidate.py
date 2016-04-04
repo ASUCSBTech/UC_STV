@@ -18,7 +18,7 @@ class ElectionCandidate:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
-               (self._id, self._name, self._party) == (other._id, other._name, other._party)
+               (self.id(), self.name(), self.party()) == (other.id(), other.name(), other.party())
 
     def __str__(self):
         return self._name + " - " + self._party

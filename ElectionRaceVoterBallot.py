@@ -19,4 +19,4 @@ class ElectionRaceVoterBallot:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
-               (self.race, self.voter, self.candidate) == (other.race, other.voter, other.candidate)
+               (self.race(), self.voter(), self.candidate()) == (other.race(), other.voter(), other.candidate())
