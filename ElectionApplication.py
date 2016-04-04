@@ -3,7 +3,6 @@ import wx
 import logging
 import argparse
 from ElectionNewUI import ElectionNewUI
-from ElectionUI import ElectionUI
 
 
 class Usage(Exception):

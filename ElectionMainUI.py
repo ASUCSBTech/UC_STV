@@ -7,7 +7,8 @@ from ElectionRace import ElectionRace
 from ElectionRaceRound import ElectionRaceRound
 from ElectionApplicationAbout import ElectionApplicationAbout
 
-class ElectionUI(wx.Frame):
+
+class ElectionMainUI(wx.Frame):
 
     def __init__(self, parent, election):
         wx.Frame.__init__(self, parent, size=(900, 680))

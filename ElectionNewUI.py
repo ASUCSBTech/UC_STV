@@ -3,7 +3,7 @@ import json
 import logging
 import sys
 from Election import Election
-from ElectionUI import ElectionUI
+from ElectionMainUI import ElectionMainUI
 
 
 class ElectionNewUI(wx.Dialog):
@@ -167,7 +167,7 @@ class ElectionNewUI(wx.Dialog):
         for race in election.get_race_all():
             race.run()
 
-        ElectionUI(None, election)
+        ElectionMainUI(None, election)
         self.EndModal(wx.ID_OK)
 
     def ui_check_complete(self):
