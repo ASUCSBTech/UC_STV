@@ -1,8 +1,9 @@
 {
   "general": {
-    "parser_directory": "./data-berkeley/parser/",
+    "parser_directory": "./parser/",
     "candidate_parser": "ElectionCandidateParser",
-    "ballot_parser": "ElectionBallotParser"
+    "ballot_parser": "ElectionBallotParser",
+    "default_speed": 95
   },
   "races": [
     {

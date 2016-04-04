@@ -1,25 +1,20 @@
 import wx
 import wx.lib.delayedresult
-import wx.adv
-import json
 import time
 import logging
-import sys
-from Election import Election
 from ElectionUIRacePanel import ElectionUIRacePanel
 from ElectionRace import ElectionRace
 from ElectionRaceRound import ElectionRaceRound
 from ElectionApplicationAbout import ElectionApplicationAbout
 
-
 class ElectionUI(wx.Frame):
 
-    def __init__(self, parent, title):
-        wx.Frame.__init__(self, parent, title=title, size=(900, 680))
+    def __init__(self, parent, election):
+        wx.Frame.__init__(self, parent, size=(900, 680))
 
-        self.logger = logging.getLogger("application.ui")
+        self.logger = logging.getLogger("application.ui.main")
 
-        self.election = None
+        self.election = election
 
         self._election_states = {
             ElectionRace.COMPLETE: "Complete",
@@ -35,10 +30,7 @@ class ElectionUI(wx.Frame):
         # Menu variables.
         self.menu = None
         self.menu_file = None
-        self.menu_file_load_election_config = None
-        self.menu_file_load_candidates = None
-        self.menu_file_load_ballots = None
-        self.menu_file_test = None
+        self.menu_file_new = None
         self.menu_help = None
         self.menu_help_about = None
 
@@ -83,10 +75,10 @@ class ElectionUI(wx.Frame):
         self.show_ui()
         self.Centre()
         self.Show()
-        self.logger.info("Main application UI displayed.")
+        self.logger.info("Main application user interface displayed.")
 
     def show_ui(self):
-        self.logger.info("Creating main application UI.")
+        self.logger.info("Launching main application user interface.")
 
         # Status Bar
         self.CreateStatusBar()
@@ -95,29 +87,17 @@ class ElectionUI(wx.Frame):
         self.menu = wx.MenuBar()
 
         # File Menu
+        self.logger.debug("Creating file menu.")
         self.menu_file = wx.Menu()
 
-        # File Menu > Load Election Configuration
-        self.menu_file_load_election_config = self.menu_file.Append(wx.ID_ANY,
-                                                                    "Load &Election Configuration\tCTRL+SHIFT+E",
-                                                                    "Load election configuration.")
-        self.Bind(wx.EVT_MENU, self.ui_load_election_config, self.menu_file_load_election_config)
-
-        # File Menu > Load Candidates
-        self.menu_file_load_candidates = self.menu_file.Append(wx.ID_ANY, "Load Candi&dates\tCTRL+SHIFT+D",
-                                                               "Load candidates.")
-        self.menu_file_load_candidates.Enable(False)
-        self.Bind(wx.EVT_MENU, self.ui_load_candidates, self.menu_file_load_candidates)
-
-        # File Menu > Load Ballots
-        self.menu_file_load_ballots = self.menu_file.Append(wx.ID_ANY, "Load &Ballot Data\tCTRL+SHIFT+C",
-                                                            "Load ballot data.")
-        self.menu_file_load_ballots.Enable(False)
-        self.Bind(wx.EVT_MENU, self.ui_load_ballot, self.menu_file_load_ballots)
+        # File Menu > New Election
+        self.menu_file_new = self.menu_file.Append(wx.ID_NEW)
+        self.Bind(wx.EVT_MENU, self.show_new, self.menu_file_new)
 
         self.menu.Append(self.menu_file, "&File")
 
         # Help Menu
+        self.logger.debug("Creating help menu.")
         self.menu_help = wx.Menu()
 
         # Help Menu > About
@@ -133,9 +113,7 @@ class ElectionUI(wx.Frame):
         self.label_round = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Round")
         self.label_speed = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Display Speed")
         self.combo_box_race = wx.ComboBox(self.panel_display_select, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
-        self.combo_box_race.Enable(False)
         self.combo_box_round = wx.ComboBox(self.panel_display_select, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
-        self.combo_box_round.Enable(False)
         self.panel_display_select.Bind(wx.EVT_COMBOBOX, self.ui_combobox_event)
         self.slider_display_speed = wx.Slider(self.panel_display_select, wx.ID_ANY, 0, 0, 100)
         self.slider_display_speed.SetValue(90)
@@ -146,10 +124,8 @@ class ElectionUI(wx.Frame):
         self.panel_display_control = wx.Panel(self, wx.ID_ANY)
         self.label_quota = wx.StaticText(self.panel_display_control, wx.ID_ANY, "")
         self.button_complete_round = wx.Button(self.panel_display_control, wx.ID_ANY, "Complete Round")
-        self.button_complete_round.Enable(False)
         self.panel_display_control.Bind(wx.EVT_BUTTON, self.ui_complete_round, self.button_complete_round)
         self.button_complete_race = wx.Button(self.panel_display_control, wx.ID_ANY, "Complete Race")
-        self.button_complete_race.Enable(False)
         self.panel_display_control.Bind(wx.EVT_BUTTON, self.ui_complete_race, self.button_complete_race)
 
         self.sizer_display_select = wx.FlexGridSizer(2, 6, 0, 0)
@@ -202,8 +178,40 @@ class ElectionUI(wx.Frame):
         self.SetMinSize((750, 500))
         self.Layout()
 
+        self.SetTitle("UCSB AS Election Tabulator")
+
+        # Setup the UI state.
+        combo_box_text = []
+
+        election_races = self.election.get_race_all()
+        if "display_order" in election_races[0].extended_data():
+            election_races.sort(key=lambda election_race: election_race.extended_data()["display_order"])
+        else:
+            election_races.sort(key=lambda election_race: election_race.position())
+
+        for race in election_races:
+            # Add the race to possible races.
+            self.combo_box_race_object[race.position()] = race
+            combo_box_text.append(race.position())
+
+        self.combo_box_race.SetItems(combo_box_text)
+        self.change_race(election_races[0])
+        self.combo_box_race.SetSelection(self.combo_box_race.FindString(self._current_race.position()))
+
+        if "default_speed" in self.election.configuration()["general"]:
+            self.logger.debug("Default tabulation speed set at `%d`.", self.election.configuration()["general"]["default_speed"])
+            self.slider_display_speed.SetValue(self.election.configuration()["general"]["default_speed"])
+
     def show_about(self, event):
         ElectionApplicationAbout(self)
+
+    def show_new(self, event):
+        if wx.MessageDialog(self, "There is currently an election open. Would you like to close this election?", caption="Confirm Close", style=wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE).ShowModal() == wx.ID_YES:
+            self.Close(True)
+            from ElectionNewUI import ElectionNewUI
+            application_new_ui = ElectionNewUI(None)
+            application_new_ui.ShowModal()
+            application_new_ui.Destroy()
 
     def ui_combobox_event(self, event):
         if event.GetEventObject() is self.combo_box_race:
@@ -238,88 +246,15 @@ class ElectionUI(wx.Frame):
         self.button_complete_round.Enable(False)
         self.combo_box_race.Enable(False)
         self.combo_box_round.Enable(False)
+        self.menu_file_new.Enable(False)
 
     def ui_complete_action_done(self, result):
         self.combo_box_race.Enable(True)
         self.combo_box_round.Enable(True)
+        self.menu_file_new.Enable(True)
         if self._current_round.parent().state() != ElectionRace.COMPLETE:
             self.button_complete_race.Enable(True)
             self.button_complete_round.Enable(True)
-
-    def ui_load_election_config(self, event):
-        election_configuration_file = wx.FileDialog(self, "", "", "", "Election Configuration files (*.json)|*.json",
-                                                   wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-
-        if election_configuration_file.ShowModal() == wx.ID_CANCEL:
-            return
-
-        try:
-            self.logger.debug("Opening election configuration file `%s`.", election_configuration_file.GetPath())
-            with open(election_configuration_file.GetPath(), encoding="utf-8") as configuration_file:
-                configuration = json.loads(configuration_file.read())
-                self.election = Election(configuration)
-                self.ui_disable_all()
-                self.grid_display.destroy_grid()
-                self.menu_file_load_candidates.Enable(True)
-                self.menu_file_load_ballots.Enable(False)
-                if "default_speed" in configuration["general"]:
-                    self.logger.debug("Default tabulation speed set at `%d`.", configuration["general"]["default_speed"])
-                    self.slider_display_speed.SetValue(configuration["general"]["default_speed"])
-                return
-        except (KeyError, IOError) as err:
-            self.logger.error("Unable to parse configuration file.", exc_info=sys.exc_info())
-            wx.MessageBox("Unable to load configuration file.", "Load Error", wx.OK | wx.ICON_ERROR)
-            return
-
-    def ui_load_candidates(self, event):
-        election_candidate_file = wx.FileDialog(self, "", "", "", "Candidate files (*.*)|*.*",
-                                             wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-
-        if election_candidate_file.ShowModal() == wx.ID_CANCEL:
-            return
-
-        try:
-            self.election.load_candidates(election_candidate_file.GetPath())
-            self.menu_file_load_ballots.Enable(True)
-        except IOError:
-            wx.MessageBox("Unable to load candidate file.", "Load Error", wx.OK | wx.ICON_ERROR)
-
-    def ui_load_ballot(self, event):
-        election_ballot_file = wx.FileDialog(self, "", "", "", "Ballot files (*.*)|*.*",
-                                             wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-
-        if election_ballot_file.ShowModal() == wx.ID_CANCEL:
-            return
-
-        try:
-            progress_dialog = wx.ProgressDialog("Processing Ballots", "", maximum=100, parent=self, style=wx.PD_APP_MODAL | wx.PD_AUTO_HIDE | wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME | wx.PD_REMAINING_TIME)
-            self.election.load_ballots(election_ballot_file.GetPath(), progress_dialog)
-            progress_dialog.Destroy()
-
-            combo_box_text = []
-
-            election_races = self.election.get_race_all()
-            if "display_order" in election_races[0].extended_data():
-                election_races.sort(key=lambda election_race: election_race.extended_data()["display_order"])
-            else:
-                election_races.sort(key=lambda election_race: election_race.position())
-
-            for race in election_races:
-                # Add the race to possible races.
-                self.combo_box_race_object[race.position()] = race
-                combo_box_text.append(race.position())
-
-                # Creates the first round when run is called the first time.
-                race.run()
-            self.combo_box_race.SetItems(combo_box_text)
-            self.change_race(election_races[0])
-            self.combo_box_race.SetSelection(self.combo_box_race.FindString(self._current_race.position()))
-            self.combo_box_round.Enable(True)
-            self.combo_box_race.Enable(True)
-            self.button_complete_race.Enable(True)
-            self.button_complete_round.Enable(True)
-        except IOError:
-            wx.MessageBox("Unable to load ballot file.", "Load Error", wx.OK | wx.ICON_ERROR)
 
     def ui_update_statusbar(self):
         if self._current_race is None or self._current_round is None:

@@ -2,6 +2,7 @@ import sys
 import wx
 import logging
 import argparse
+from ElectionNewUI import ElectionNewUI
 from ElectionUI import ElectionUI
 
 
@@ -22,9 +23,14 @@ def main(argv=None):
         argv = sys.argv
 
     parser = argparse.ArgumentParser(description="UCSB AS Elections Tabulator")
-    parser.add_argument("-l", "--log", help="Enable/disable logging for the application.", action="store_true", dest="log_enabled")
-    parser.add_argument("-ll", "--log-level", help="Level of logging.", default="DEBUG", dest="log_level")
-    parser.add_argument("-ld", "--log-destination", help="Set the file log output.", default="event.log", dest="log_destination")
+    parser_group_election = parser.add_argument_group("Election Configuration")
+    parser_group_election.add_argument("--config", help="Election configuration file.", dest="config_file")
+    parser_group_election.add_argument("--candidates", help="Election candidates file.", dest="candidate_file")
+    parser_group_election.add_argument("--ballots", help="Election ballots file.", dest="ballot_file")
+    parser_group_logging = parser.add_argument_group("Logging")
+    parser_group_logging.add_argument("-l", "--log", help="Enable/disable logging for the application.", action="store_true", dest="log_enabled")
+    parser_group_logging.add_argument("-ll", "--log-level", help="Level of logging.", default="DEBUG", dest="log_level")
+    parser_group_logging.add_argument("-ld", "--log-destination", help="Set the file log output.", default="event.log", dest="log_destination")
 
     parsed_arguments = parser.parse_args(argv[1:])
 
@@ -47,7 +53,16 @@ def main(argv=None):
     logger.info("Application started.")
 
     application = ElectionApplication()
-    ElectionUI(None, title="UCSB AS Election Tabulator")
+    application_new_ui = ElectionNewUI(None)
+    if parsed_arguments.config_file:
+        application_new_ui.set_configuration_file(parsed_arguments.config_file)
+    if parsed_arguments.candidate_file:
+        application_new_ui.set_candidate_file(parsed_arguments.candidate_file)
+    if parsed_arguments.ballot_file:
+        application_new_ui.set_ballot_file(parsed_arguments.ballot_file)
+    application_new_ui.ui_check_complete()
+    application_new_ui.ShowModal()
+    application_new_ui.Destroy()
     application.MainLoop()
 
 

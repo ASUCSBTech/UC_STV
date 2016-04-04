@@ -145,6 +145,9 @@ class ElectionUIRacePanel(wx.Panel):
             except IndexError:
                 return ""
 
+        def ColumnsFindString(self, value):
+            return self._table_columns.index(value)
+
         def SetValue(self, row, col, value):
             # Values should not be editable.
             return
@@ -264,7 +267,13 @@ class ElectionUIRacePanel(wx.Panel):
             dc.SetPen(wx.TRANSPARENT_PEN)
             dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height)
 
-            dc.SetBrush(wx.BLUE_BRUSH)
+            bar_color = wx.MEDIUM_GREY_BRUSH
+            grid_table = grid.GetTable()
+            if grid_table:
+                row_status = grid.GetCellValue(row, grid_table.ColumnsFindString("Status"))
+                if row_status == "WON":
+                    bar_color = wx.BLUE_BRUSH
+            dc.SetBrush(bar_color)
             dc.DrawRectangle(rect.x, rect.y, rect.width * float(grid.GetCellValue(row, col)), rect.height)
 
         def GetBestSize(self, grid, attr, dc, row, col):
