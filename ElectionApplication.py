@@ -1,5 +1,4 @@
 import sys
-import getopt
 import wx
 import logging
 import argparse
