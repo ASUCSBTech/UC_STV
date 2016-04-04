@@ -1,5 +1,6 @@
 import json
 import random
+import os
 
 RACES = {
     "academic_vp": "2",
@@ -14,9 +15,10 @@ RACE_CANDIDATES = 30
 VOTERS = 12000
 
 def main():
-    with open("./data/firstname.json") as firstname_file:
+    base_path = os.path.join(os.path.dirname(__file__))
+    with open(os.path.normpath(os.path.join(base_path, "./data/firstname.json"))) as firstname_file:
         first_names = json.loads(firstname_file.read())
-    with open("./data/lastname.json") as lastname_file:
+    with open(os.path.normpath(os.path.join(base_path, "./data/lastname.json"))) as lastname_file:
         last_names = json.loads(lastname_file.read())
 
     return_candidate_data = {}
@@ -46,10 +48,10 @@ def main():
             ballot[race] = random.sample(RACES_CANDIDATES[race], random.randint(0, len(RACES_CANDIDATES[race])))
         return_ballot_data["ballots"].append(ballot)
 
-    with open("candidates.json", "w") as candidates_out:
+    with open(os.path.normpath(os.path.join(base_path, "./candidates.json")), "w") as candidates_out:
         json.dump(return_candidate_data, candidates_out)
 
-    with open("ballots.json", "w") as ballots_out:
+    with open(os.path.normpath(os.path.join(base_path, "./ballots.json")), "w") as ballots_out:
         json.dump(return_ballot_data, ballots_out)
 
 

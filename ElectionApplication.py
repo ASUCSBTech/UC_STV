@@ -2,6 +2,7 @@ import sys
 import wx
 import logging
 import argparse
+import os
 from ElectionNewUI import ElectionNewUI
 
 
@@ -33,7 +34,7 @@ def main(argv=None):
 
     parsed_arguments = parser.parse_args(argv[1:])
 
-    log_destination = parsed_arguments.log_destination
+    log_destination = os.path.normpath(os.path.join(os.path.join(os.path.dirname(__file__)), parsed_arguments.log_destination))
     log_level = parsed_arguments.log_level
 
     # Setup logging in the application.
