@@ -1,0 +1,64 @@
+{
+  "general": {
+    "parser_directory": "./parser/",
+    "candidate_parser": "ElectionCandidateParser",
+    "ballot_parser": "ElectionBallotParser",
+    "default_speed": 95
+  },
+  "races": [
+    {
+      "race_id": 1,
+      "race_position": "Senator",
+      "race_max_winners": 20,
+      "race_extended_data": {
+        "parser_group": "senator",
+        "display_order": 6
+      }
+    },
+    {
+      "race_id": 2,
+      "race_position": "Academic Affairs Vice President",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "academic_vp",
+        "display_order": 4
+      }
+    },
+    {
+      "race_id": 3,
+      "race_position": "External Affairs Vice President",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "external_vp",
+        "display_order": 3
+      }
+    },
+    {
+      "race_id": 4,
+      "race_position": "Executive Vice President",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "executive_vp",
+        "display_order": 2
+      }
+    },
+    {
+      "race_id": 5,
+      "race_position": "Student Advocate",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "student_advocate",
+        "display_order": 5
+      }
+    },
+    {
+      "race_id": 6,
+      "race_position": "President",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "president",
+        "display_order": 1
+      }
+    }
+  ]
+}
