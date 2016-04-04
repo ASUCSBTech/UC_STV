@@ -65,8 +65,7 @@ class ElectionNewUI(wx.Dialog):
 
         self.sizer_main = wx.FlexGridSizer(2, 1, 5, 0)
         self.sizer_form = wx.FlexGridSizer(3, 3, 5, 5)
-        self.sizer_form.Add(self.label_configuration_file, 0,
-                            wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.LEFT | wx.TOP, 5)
+        self.sizer_form.Add(self.label_configuration_file, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.LEFT | wx.TOP, 5)
         self.sizer_form.Add(self.text_ctrl_configuration_file, 0, wx.EXPAND | wx.TOP, 5)
         self.sizer_form.Add(self.button_configuration_file_browse, 0, wx.RIGHT | wx.TOP, 5)
         self.sizer_form.Add(self.label_candidate_file, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.LEFT, 5)
@@ -87,8 +86,7 @@ class ElectionNewUI(wx.Dialog):
         self.SetTitle("UCSB AS Election Tabulator")
 
     def ui_browse_configuration_file(self, event):
-        election_configuration_file = wx.FileDialog(self, "", "", "", "Election Configuration files (*.json)|*.json",
-                                                    wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        election_configuration_file = wx.FileDialog(self, "", "", "", "Election Configuration files (*.json)|*.json", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
         if election_configuration_file.ShowModal() == wx.ID_CANCEL:
             return
@@ -97,8 +95,7 @@ class ElectionNewUI(wx.Dialog):
         self.ui_check_complete()
 
     def ui_browse_candidate_file(self, event):
-        election_candidate_file = wx.FileDialog(self, "", "", "", "Candidate files (*.*)|*.*",
-                                                wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        election_candidate_file = wx.FileDialog(self, "", "", "", "Candidate files (*.*)|*.*", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
         if election_candidate_file.ShowModal() == wx.ID_CANCEL:
             return
@@ -107,8 +104,7 @@ class ElectionNewUI(wx.Dialog):
         self.ui_check_complete()
 
     def ui_browse_ballot_file(self, event):
-        election_ballot_file = wx.FileDialog(self, "", "", "", "Ballot files (*.*)|*.*",
-                                             wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        election_ballot_file = wx.FileDialog(self, "", "", "", "Ballot files (*.*)|*.*", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
         if election_ballot_file.ShowModal() == wx.ID_CANCEL:
             return
@@ -133,35 +129,24 @@ class ElectionNewUI(wx.Dialog):
         try:
             election = Election(self.configuration_file)
         except (ValueError, KeyError, IOError):
-            self.logger.error("Unable to parse configuration file from `%s`.", self.configuration_file,
-                              exc_info=sys.exc_info())
-            wx.MessageDialog(self,
-                             "Unable to load configuration file. Please verify that the file specified is the correct configuration file.",
-                             caption="Load Error",
-                             style=wx.OK | wx.ICON_ERROR | wx.CENTRE).ShowModal()
+            self.logger.error("Unable to parse configuration file from `%s`.", self.configuration_file, exc_info=sys.exc_info())
+            wx.MessageDialog(self, "Unable to load configuration file. Please verify that the file specified is the correct configuration file.", caption="Load Error", style=wx.OK | wx.ICON_ERROR | wx.CENTRE).ShowModal()
             return
 
         try:
             election.load_candidates(self.candidate_file)
         except IOError:
             self.logger.error("Unable to load candidate file from `%s`.", self.candidate_file, exc_info=sys.exc_info())
-            wx.MessageDialog(self,
-                             "Unable to load candidate file. Please verify that the file specified is the correct candidate file.",
-                             caption="Load Error",
-                             style=wx.OK | wx.ICON_ERROR | wx.CENTRE).ShowModal()
+            wx.MessageDialog(self, "Unable to load candidate file. Please verify that the file specified is the correct candidate file.", caption="Load Error", style=wx.OK | wx.ICON_ERROR | wx.CENTRE).ShowModal()
             return
 
         try:
-            progress_dialog = wx.ProgressDialog("Processing Ballots", "", maximum=100, parent=self,
-                                                style=wx.PD_APP_MODAL | wx.PD_AUTO_HIDE | wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME | wx.PD_REMAINING_TIME)
+            progress_dialog = wx.ProgressDialog("Processing Ballots", "", maximum=100, parent=self, style=wx.PD_APP_MODAL | wx.PD_AUTO_HIDE | wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME | wx.PD_REMAINING_TIME)
             election.load_ballots(self.ballot_file, progress_dialog)
             progress_dialog.Destroy()
         except IOError:
             self.logger.error("Unable to load ballot file from `%s`.", self.ballot_file, exc_info=sys.exc_info())
-            wx.MessageDialog(self,
-                             "Unable to load ballot file. Please verify that the file specified is the correct ballot file.",
-                             caption="Load Error",
-                             style=wx.OK | wx.ICON_ERROR | wx.CENTRE).ShowModal()
+            wx.MessageDialog(self, "Unable to load ballot file. Please verify that the file specified is the correct ballot file.", caption="Load Error", style=wx.OK | wx.ICON_ERROR | wx.CENTRE).ShowModal()
             return
 
         for race in election.get_race_all():

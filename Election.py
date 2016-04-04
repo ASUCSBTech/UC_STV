@@ -28,8 +28,7 @@ class Election:
         # Parse the configuration data.
         for race in configuration["races"]:
             try:
-                new_race = ElectionRace(race["race_id"], race["race_position"], int(race["race_max_winners"]),
-                                        race["race_extended_data"])
+                new_race = ElectionRace(race["race_id"], race["race_position"], int(race["race_max_winners"]), race["race_extended_data"])
                 self._races.append(new_race)
                 self._race_id[new_race.id()] = new_race
             except ValueError:
@@ -44,12 +43,8 @@ class Election:
             raise ElectionError("Configuration error, parser directory is not a valid path.")
 
         importlib.invalidate_caches()
-        self.ballot_parser = importlib.machinery.SourceFileLoader(configuration["general"]["ballot_parser"],
-                                                                  parser_directory_path + configuration["general"][
-                                                                      "ballot_parser"] + ".py").load_module()
-        self.candidate_parser = importlib.machinery.SourceFileLoader(configuration["general"]["candidate_parser"],
-                                                                     parser_directory_path + configuration["general"][
-                                                                         "candidate_parser"] + ".py").load_module()
+        self.ballot_parser = importlib.machinery.SourceFileLoader(configuration["general"]["ballot_parser"], parser_directory_path + configuration["general"]["ballot_parser"] + ".py").load_module()
+        self.candidate_parser = importlib.machinery.SourceFileLoader(configuration["general"]["candidate_parser"], parser_directory_path + configuration["general"]["candidate_parser"] + ".py").load_module()
 
     def configuration(self):
         return self._configuration

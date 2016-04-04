@@ -47,8 +47,7 @@ class ElectionVoter:
         return None
 
     def _get_voter_preference(self, race, candidates):
-        return next((preferred_candidate for preferred_candidate in self._race_preferences[race]
-                     if preferred_candidate in candidates), None)
+        return next((preferred_candidate for preferred_candidate in self._race_preferences[race] if preferred_candidate in candidates), None)
 
     def __str__(self):
         return str(self._id)

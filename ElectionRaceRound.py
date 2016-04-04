@@ -157,7 +157,8 @@ class ElectionRaceRound:
                 (self._cache_candidate_post is not None):
             return self._cache_candidate_post
 
-        candidate_group_states = {ElectionCandidateState.RUNNING: [], ElectionCandidateState.WON: [],
+        candidate_group_states = {ElectionCandidateState.RUNNING: [],
+                                  ElectionCandidateState.WON: [],
                                   ElectionCandidateState.ELIMINATED: []}
 
         for candidate in self._candidates:

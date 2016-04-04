@@ -89,12 +89,10 @@ def parse(ballot_file_path, races):
                         if ballot_file_data[1][column].strip() == "Write-In":
                             race_order = float(ballot_file_data[row][column])
                             if ballot_file_data[row][column + 1].strip():
-                                race_preferences[int(race_order)] = race.get_candidate(
-                                    ballot_file_data[row][column + 1].strip()).id()
+                                race_preferences[int(race_order)] = race.get_candidate(ballot_file_data[row][column + 1].strip()).id()
                         else:
                             race_order = float(ballot_file_data[row][column])
-                            race_preferences[int(race_order)] = race.get_candidate(
-                                ballot_file_data[1][column].strip()).id()
+                            race_preferences[int(race_order)] = race.get_candidate(ballot_file_data[1][column].strip()).id()
                     except ValueError:
                         pass
                 # Remove zeroth index (None) since candidates are ordered from 1 to N.

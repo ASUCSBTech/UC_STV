@@ -28,9 +28,9 @@ class ElectionUIRacePanel(wx.Panel):
         frame_width = self.grid.GetGridWindow().GetClientRect().GetWidth()
         remaining_width = frame_width - width
 
-        self.grid.SetColSize(columns-1, -1)
-        if self.grid.GetColSize(columns-1) < remaining_width:
-            self.grid.SetColSize(columns-1, remaining_width)
+        self.grid.SetColSize(columns - 1, -1)
+        if self.grid.GetColSize(columns - 1) < remaining_width:
+            self.grid.SetColSize(columns - 1, remaining_width)
 
         if event and self.GetAutoLayout():
             self.Layout()
@@ -99,9 +99,7 @@ class ElectionUIRacePanel(wx.Panel):
 
         # Set the column label size to be the height of the text at
         # column zero (first column) plus five.
-        new_grid.SetColLabelSize(
-            wx.MemoryDC().GetFullMultiLineTextExtent(new_grid.GetColLabelValue(0),
-                                                     font=new_grid.GetLabelFont())[1] + 5)
+        new_grid.SetColLabelSize(wx.MemoryDC().GetFullMultiLineTextExtent(new_grid.GetColLabelValue(0), font=new_grid.GetLabelFont())[1] + 5)
 
         new_grid.SetRowLabelSize(0)
 
@@ -175,12 +173,10 @@ class ElectionUIRacePanel(wx.Panel):
             current_row_count = len(self._table_rows)
             if self._election_round.state() is ElectionRaceRound.INCOMPLETE:
                 candidate_states = self._election_round.get_candidates_state(ElectionRaceRound.CANDIDATE_PRE_STATE)
-                candidate_state_groups = self._election_round.get_candidates_by_state(
-                    ElectionRaceRound.CANDIDATE_PRE_STATE)
+                candidate_state_groups = self._election_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_PRE_STATE)
             else:
                 candidate_states = self._election_round.get_candidates_state(ElectionRaceRound.CANDIDATE_POST_STATE)
-                candidate_state_groups = self._election_round.get_candidates_by_state(
-                    ElectionRaceRound.CANDIDATE_POST_STATE)
+                candidate_state_groups = self._election_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_POST_STATE)
 
             scores = self._election_round.get_candidates_score()
             droop_quota = self._election_round.parent().droop_quota()
@@ -192,10 +188,7 @@ class ElectionUIRacePanel(wx.Panel):
             # WON - ordered by winning round # in ascending order and winning round score.
             # RUNNING - ordered by round score
             # ELIMINATED - ordered by eliminated round in descending order
-            table_group_won = sorted(candidate_state_groups[ElectionCandidateState.WON], key=lambda sort_candidate: (
-                                     self._election_round.round() - candidate_states[sort_candidate].round().round(),
-                                     candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)),
-                                     reverse=True)
+            table_group_won = sorted(candidate_state_groups[ElectionCandidateState.WON], key=lambda sort_candidate: (self._election_round.round() - candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
             for candidate in table_group_won:
                 candidate_score = candidate_states[candidate].round().get_candidate_score(candidate)
                 new_table_rows.append([
@@ -206,8 +199,7 @@ class ElectionUIRacePanel(wx.Panel):
                     candidate_score / droop_quota
                 ])
 
-            table_group_running = sorted(candidate_state_groups[ElectionCandidateState.RUNNING],
-                                         key=lambda sort_candidate: scores[sort_candidate], reverse=True)
+            table_group_running = sorted(candidate_state_groups[ElectionCandidateState.RUNNING], key=lambda sort_candidate: scores[sort_candidate], reverse=True)
             for candidate in table_group_running:
                 candidate_score = scores[candidate]
                 new_table_rows.append([
@@ -218,11 +210,7 @@ class ElectionUIRacePanel(wx.Panel):
                     candidate_score / droop_quota
                 ])
 
-            table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED],
-                                            key=lambda sort_candidate: (
-                                            candidate_states[sort_candidate].round().round(),
-                                            candidate_states[sort_candidate].round().get_candidate_score(
-                                                sort_candidate)), reverse=True)
+            table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED], key=lambda sort_candidate: (candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
             for candidate in table_group_eliminated:
                 candidate_score = candidate_states[candidate].round().get_candidate_score(candidate)
                 new_table_rows.append([
@@ -238,12 +226,10 @@ class ElectionUIRacePanel(wx.Panel):
             self.GetView().BeginBatch()
             new_row_count = len(self._table_rows)
             if new_row_count < current_row_count:
-                msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, new_row_count - 1,
-                                               current_row_count - new_row_count)
+                msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, new_row_count - 1, current_row_count - new_row_count)
                 self.GetView().ProcessTableMessage(msg)
             elif new_row_count > current_row_count:
-                msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED,
-                                               new_row_count - current_row_count)
+                msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED, new_row_count - current_row_count)
                 self.GetView().ProcessTableMessage(msg)
             msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
             self.GetView().ProcessTableMessage(msg)

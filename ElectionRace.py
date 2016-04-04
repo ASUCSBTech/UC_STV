@@ -109,8 +109,7 @@ class ElectionRace:
             # Add candidates to round.
             for candidate in self._candidates:
                 self.logger.debug("Adding candidate %s to %s race round %s.", candidate, self, new_round)
-                new_round.add_candidate(candidate,
-                                        ElectionCandidateState(new_round, candidate, ElectionCandidateState.RUNNING))
+                new_round.add_candidate(candidate, ElectionCandidateState(new_round, candidate, ElectionCandidateState.RUNNING))
             self._rounds.append(new_round)
             self._transfer_voters = self._voters[:]
             return
@@ -121,10 +120,7 @@ class ElectionRace:
         if self._transfer_voters:
             self.logger.debug("%d voters remaining to be transferred in %s race.", len(self._transfer_voters), self)
             transfer_voter = self._transfer_voters.pop(0)
-            current_round.add_ballot(transfer_voter.get_race_voter_ballot(self, current_round,
-                                                                          current_round.get_candidates_by_state(
-                                                                              ElectionRaceRound.CANDIDATE_PRE_STATE)[
-                                                                              ElectionCandidateState.RUNNING]))
+            current_round.add_ballot(transfer_voter.get_race_voter_ballot(self, current_round, current_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_PRE_STATE)[ElectionCandidateState.RUNNING]))
             return
 
         # There are no more voters to cast their ballots in the round,
@@ -136,8 +132,7 @@ class ElectionRace:
         current_round_scores = current_round.get_candidates_score()
         current_round_winners = []
 
-        running_candidates = current_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_PRE_STATE)[
-            ElectionCandidateState.RUNNING]
+        running_candidates = current_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_PRE_STATE)[ElectionCandidateState.RUNNING]
 
         # Calculate the maximum number of winners that can be taken this round.
         max_round_winners = self._max_winners - len(self._winners)
@@ -184,12 +179,9 @@ class ElectionRace:
                 while len(current_round_winners) > max_round_winners:
                     self.logger.debug("Comparing candidate scores from previous round (%s) in %s race.", previous_round, self)
                     previous_round_scores = previous_round.get_candidates_score()
-                    previous_round_lowest_winners = sorted(lowest_winners,
-                                                           key=lambda sort_candidate: previous_round_scores[
-                                                               sort_candidate], reverse=True)
+                    previous_round_lowest_winners = sorted(lowest_winners, key=lambda sort_candidate: previous_round_scores[sort_candidate], reverse=True)
 
-                    if previous_round_scores[previous_round_lowest_winners[-1]] != previous_round_scores[
-                        previous_round_lowest_winners[-2]]:
+                    if previous_round_scores[previous_round_lowest_winners[-1]] != previous_round_scores[previous_round_lowest_winners[-2]]:
                         self.logger.debug("Candidate %s had less votes than candidate %s and has been removed from the potential winners list in %s race.", previous_round_lowest_winners[-1], previous_round_lowest_winners[-2], self)
                         current_round_winners.remove(previous_round_lowest_winners[-1])
                         lowest_winners.remove(previous_round_lowest_winners[-1])
@@ -198,15 +190,12 @@ class ElectionRace:
                         self.logger.debug("Candidates in %s race still tied, moving to previous round.", self)
                         if previous_round is None:
                             self.logger.error("Candidates are still tied in %s race. Exhausted available rounds to compare.", self)
-                            raise ElectionRaceError(
-                                "Unable to resolve tie in round winners, candidates tied the entire race.")
+                            raise ElectionRaceError("Unable to resolve tie in round winners, candidates tied the entire race.")
 
         # Set winners in round.
         for candidate in current_round_winners:
             self.logger.info("Candidate %s in %s race has won.", candidate, self)
-            current_round.set_candidate_state(candidate,
-                                              ElectionCandidateState(current_round, candidate,
-                                                                     ElectionCandidateState.WON))
+            current_round.set_candidate_state(candidate, ElectionCandidateState(current_round, candidate, ElectionCandidateState.WON))
             candidate_voters = current_round.get_candidate_voters(candidate)
             candidate_ballots = current_round.get_candidate_ballots(candidate)
 
@@ -238,8 +227,7 @@ class ElectionRace:
                 self.logger.debug("Eliminating remaining candidates in %s race.", self)
                 for candidate in current_round.get_candidates_by_state()[ElectionCandidateState.RUNNING]:
                     self.logger.debug("Eliminating candidate %s from %s race.", candidate, self)
-                    current_round.set_candidate_state(candidate, ElectionCandidateState(current_round, candidate,
-                                                      ElectionCandidateState.ELIMINATED))
+                    current_round.set_candidate_state(candidate, ElectionCandidateState(current_round, candidate, ElectionCandidateState.ELIMINATED))
 
                 # End the current round.
                 self.logger.info("Round %s in %s race has completed.", current_round, self)
@@ -299,8 +287,7 @@ class ElectionRace:
         for candidate in running_candidates:
             if current_round_scores[candidate] < current_round_scores[lowest_candidates[0]]:
                 lowest_candidates = [candidate]
-            elif current_round_scores[candidate] == current_round_scores[
-                lowest_candidates[0]] and candidate not in lowest_candidates:
+            elif current_round_scores[candidate] == current_round_scores[lowest_candidates[0]] and candidate not in lowest_candidates:
                 lowest_candidates.append(candidate)
 
         eliminated_candidates.extend(lowest_candidates)
@@ -308,8 +295,7 @@ class ElectionRace:
         # Eliminate candidates.
         for candidate in eliminated_candidates:
             self.logger.info("Eliminating candidate %s in %s race.", candidate, self)
-            current_round.set_candidate_state(candidate, ElectionCandidateState(current_round, candidate,
-                                                                                ElectionCandidateState.ELIMINATED))
+            current_round.set_candidate_state(candidate, ElectionCandidateState(current_round, candidate, ElectionCandidateState.ELIMINATED))
 
             # Transfer voters that were part of that candidate.
             self._transfer_voters.extend(current_round.get_candidate_voters(candidate))
