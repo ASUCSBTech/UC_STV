@@ -125,7 +125,6 @@ class ElectionNewUI(wx.Dialog):
         self.text_ctrl_ballot_file.SetValue(self.ballot_file)
 
     def ui_create(self, event):
-        election = None
         try:
             election = Election(self.configuration_file)
         except (ValueError, KeyError, IOError):
@@ -135,7 +134,7 @@ class ElectionNewUI(wx.Dialog):
 
         try:
             election.load_candidates(self.candidate_file)
-        except IOError:
+        except (ValueError, KeyError, IOError):
             self.logger.error("Unable to load candidate file from `%s`.", self.candidate_file, exc_info=sys.exc_info())
             wx.MessageDialog(self, "Unable to load candidate file. Please verify that the file specified is the correct candidate file.", caption="Load Error", style=wx.OK | wx.ICON_ERROR | wx.CENTRE).ShowModal()
             return
@@ -144,7 +143,7 @@ class ElectionNewUI(wx.Dialog):
             progress_dialog = wx.ProgressDialog("Processing Ballots", "", maximum=100, parent=self, style=wx.PD_APP_MODAL | wx.PD_AUTO_HIDE | wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME | wx.PD_REMAINING_TIME)
             election.load_ballots(self.ballot_file, progress_dialog)
             progress_dialog.Destroy()
-        except IOError:
+        except (ValueError, KeyError, IOError):
             self.logger.error("Unable to load ballot file from `%s`.", self.ballot_file, exc_info=sys.exc_info())
             wx.MessageDialog(self, "Unable to load ballot file. Please verify that the file specified is the correct ballot file.", caption="Load Error", style=wx.OK | wx.ICON_ERROR | wx.CENTRE).ShowModal()
             return

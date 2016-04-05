@@ -4,6 +4,7 @@ import importlib
 import importlib.machinery
 import logging
 import json
+import hashlib
 from ElectionRace import ElectionRace
 from ElectionCandidate import ElectionCandidate
 from ElectionVoter import ElectionVoter
@@ -21,6 +22,7 @@ class Election:
 
         self.logger = logging.getLogger("application.election")
 
+        self.logger.info("Parsing configuration file at `%s`. (SHA-512 Hash: `%s`)", configuration_file_path, hashlib.sha512(open(configuration_file_path, "rb").read()).hexdigest())
         with open(configuration_file_path, encoding="utf-8") as configuration_file:
             self._configuration = json.loads(configuration_file.read())
             configuration = self._configuration
@@ -50,7 +52,7 @@ class Election:
         return self._configuration
 
     def load_candidates(self, candidate_file_path):
-        self.logger.info("Parsing candidate file at `%s`.", candidate_file_path)
+        self.logger.info("Parsing candidate file at `%s`. (SHA-512 Hash: `%s`)", candidate_file_path, hashlib.sha512(open(candidate_file_path, "rb").read()).hexdigest())
         candidate_data = self.candidate_parser.parse(candidate_file_path, self._races)
         self.logger.info("Parsing %d races in candidate file.", len(candidate_data))
         for race in candidate_data:
@@ -69,7 +71,7 @@ class Election:
         if progress_dialog:
             progress_dialog.Pulse("Parsing ballot file.")
             progress_dialog.Fit()
-        self.logger.info("Parsing ballot file at `%s`.", ballot_file_path)
+        self.logger.info("Parsing ballot file at `%s`. (SHA-512 Hash: `%s`)", ballot_file_path, hashlib.sha512(open(ballot_file_path, "rb").read()).hexdigest())
         ballot_data = self.ballot_parser.parse(ballot_file_path, self._races)
         if progress_dialog:
             progress_dialog.SetRange(len(ballot_data))
@@ -84,14 +86,14 @@ class Election:
                 current_race = self.get_race(race_id)
 
                 if len(ballot["ballot_data"][race_id]) == 0:
-                    self.logger.debug("Voter %s did not vote in %s race.", voter, current_race)
+                    self.logger.debug("Voter `%s` did not vote in `%s` race.", voter, current_race)
                     continue
 
                 voter.add_race(current_race)
                 current_race.add_voter(voter)
 
                 candidate_preferences = []
-                self.logger.debug("Adding voter %s's %s race preferences.", voter, current_race)
+                self.logger.debug("Adding voter `%s`'s `%s` race preferences.", voter, current_race)
                 for candidate_id in ballot["ballot_data"][race_id]:
                     candidate_preferences.append(current_race.get_candidate(candidate_id))
                 voter.set_race_preferences(current_race, candidate_preferences)

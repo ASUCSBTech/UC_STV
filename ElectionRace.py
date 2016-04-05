@@ -2,6 +2,8 @@ from ElectionCandidateState import ElectionCandidateState
 from ElectionRaceRound import ElectionRaceRound
 from ElectionRaceError import ElectionRaceError
 import logging
+import terminaltables
+import math
 
 
 class ElectionRace:
@@ -57,7 +59,7 @@ class ElectionRace:
 
     def add_voter(self, voter):
         if self._state is not self.ADDING:
-            raise ElectionRaceError("Election voter adding phase has completed.")
+            raise ElectionRaceError("(Race: %s) Election voter adding phase has completed." % self)
 
         # Ignore voters that are already added.
         if voter in self._voters:
@@ -67,10 +69,10 @@ class ElectionRace:
 
     def add_candidate(self, candidate):
         if self._state is not self.ADDING:
-            raise ElectionRaceError("Election candidate adding phase has completed.")
+            raise ElectionRaceError("(Race: %s) Election candidate adding phase has completed." % self)
 
         if candidate in self._candidates:
-            raise ElectionRaceError("Candidate is already part of this race.")
+            raise ElectionRaceError("(Race: %s) Candidate is already part of this race." % self)
 
         self._candidate_id[candidate.id()] = candidate
         self._candidates.append(candidate)
@@ -94,6 +96,104 @@ class ElectionRace:
         return self._rounds[current_round_index - 1]
 
     def run(self):
+        # Reusable run components.
+        def create_new_round():
+            # Get candidates that changed states in this round.
+            current_round_changed = current_round.get_candidates_changed()
+
+            # Create a new round and add the candidates in.
+            self.logger.info("(Race: %s) Previous round completed, creating new round.", self)
+            _new_round = ElectionRaceRound(self, current_round.round() + 1)
+            for _candidate in self._candidates:
+                self.logger.info("(Race: %s, Round: %s) Adding candidate `%s` to the new round. (New Round: %s)", self, current_round, _candidate, _new_round)
+                _new_round.add_candidate(_candidate, current_round.get_candidate_state(_candidate))
+
+            # Add ballots for candidates that have NOT changed.
+            for _candidate in self._candidates:
+                # Candidate changed, ignore ballots.
+                if _candidate in current_round_changed:
+                    continue
+
+                transferable_ballots = current_round.get_candidate_ballots(_candidate)
+                self.logger.info("(Race: %s, Round: %s) Transferring %d reusable ballots from candidate `%s` to new round. (New Round: %s)", self, current_round, len(transferable_ballots), _candidate, _new_round)
+                for _ballot in transferable_ballots:
+                    _new_round.add_ballot(_ballot)
+
+            # Transfer none ballots.
+            transferable_ballots = current_round.get_candidate_ballots(None)
+            self.logger.info("(Race: %s, Round: %s) Transferring %d depleted ballots to new round. (New Round: %s)", self, current_round, len(transferable_ballots), _new_round)
+            for _ballot in transferable_ballots:
+                _new_round.add_ballot(_ballot)
+
+            # Append the new round to the list of rounds.
+            self._rounds.append(_new_round)
+
+        def complete_current_round():
+            current_round.complete()
+
+            if not self.logger.isEnabledFor(logging.INFO):
+                # Complete the current round.
+                self.logger.info("(Race: %s, Round: %s) Round has completed.", self, current_round)
+            else:
+                # Print final round data.
+                _candidate_states = {
+                    ElectionCandidateState.WON: "WON",
+                    ElectionCandidateState.RUNNING: "RUNNING",
+                    ElectionCandidateState.ELIMINATED: "ELIMINATED"
+                }
+
+                table_data = [[
+                    "Candidate",
+                    "Party",
+                    "Status",
+                    "Score"
+                ]]
+
+                def round_down(value, places):
+                    return math.floor(value * (10 ** places)) / float(10 ** places)
+
+                candidate_state_groups = current_round.get_candidates_by_state()
+                candidate_states = current_round.get_candidates_state()
+                candidate_scores = current_round.get_candidates_score()
+
+                droop_quota = self.droop_quota()
+
+                score_resolution = 4
+
+                table_group_won = sorted(candidate_state_groups[ElectionCandidateState.WON], key=lambda sort_candidate: (current_round.round() - candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
+                for _candidate in table_group_won:
+                    _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
+                    table_data.append([
+                        _candidate.name(),
+                        _candidate.party(),
+                        _candidate_states[ElectionCandidateState.WON],
+                        str(droop_quota) + " (" + str(round_down(_candidate_score, score_resolution)) + ")"
+                    ])
+
+                table_group_running = sorted(candidate_state_groups[ElectionCandidateState.RUNNING], key=lambda sort_candidate: candidate_scores[sort_candidate], reverse=True)
+                for _candidate in table_group_running:
+                    _candidate_score = candidate_scores[_candidate]
+                    table_data.append([
+                        _candidate.name(),
+                        _candidate.party(),
+                        _candidate_states[ElectionCandidateState.RUNNING],
+                        str(round_down(_candidate_score, score_resolution))
+                    ])
+
+                table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED], key=lambda sort_candidate: (candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
+                for _candidate in table_group_eliminated:
+                    _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
+                    table_data.append([
+                        _candidate.name(),
+                        _candidate.party(),
+                        _candidate_states[ElectionCandidateState.ELIMINATED],
+                        "0 (" + str(round_down(_candidate_score, score_resolution)) + ")"
+                    ])
+
+                table = terminaltables.DoubleTable(table_data, title="Final Round Results")
+                table.inner_row_border = True
+                self.logger.info("(Race: %s, Round: %s) Round has completed.\n%s\nCandidates Affected: %s", self, current_round, table.table, ", ".join(map(str, current_round.get_candidates_changed())))
+
         if self._state is self.COMPLETE:
             return
 
@@ -104,22 +204,27 @@ class ElectionRace:
         # If the current round does not exist, this race just began
         # so create a new round.
         if current_round is None:
-            self.logger.debug("Latest round not found in %s race, creating new round.", self)
+            self.logger.info("(Race: %s) Latest round not found, creating new round.", self)
             new_round = ElectionRaceRound(self, 1)
             # Add candidates to round.
             for candidate in self._candidates:
-                self.logger.debug("Adding candidate %s to %s race round %s.", candidate, self, new_round)
+                self.logger.info("(Race: %s, Round: %s) Adding candidate `%s` to the round.", self, new_round, candidate)
                 new_round.add_candidate(candidate, ElectionCandidateState(new_round, candidate, ElectionCandidateState.RUNNING))
             self._rounds.append(new_round)
             self._transfer_voters = self._voters[:]
+            return
+
+        # Check if the round is complete, if it is, then create a new round.
+        if current_round.state() == ElectionRaceRound.COMPLETE:
+            create_new_round()
             return
 
         # If there are voters to cast their ballots for the current
         # round of the race, take the first voter in the list
         # and cast their ballot.
         if self._transfer_voters:
-            self.logger.debug("%d voters remaining to be transferred in %s race.", len(self._transfer_voters), self)
             transfer_voter = self._transfer_voters.pop(0)
+            self.logger.info("(Race: %s, Round: %s) Adding voter `%s` ballot into the round. (Remaining Voters: %d)", self, current_round, transfer_voter, len(self._transfer_voters))
             current_round.add_ballot(transfer_voter.get_race_voter_ballot(self, current_round, current_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_PRE_STATE)[ElectionCandidateState.RUNNING]))
             return
 
@@ -140,7 +245,7 @@ class ElectionRace:
         # Check if the number of running candidates is less than or equal to the number of maximum
         # round winners.
         if len(running_candidates) <= max_round_winners:
-            self.logger.debug("Total number of remaining running candidates is less than or equal to remaining spots in %s race.", self)
+            self.logger.info("(Race: %s, Round: %s) Total number of remaining running candidates is less than or equal to remaining spots.", self, current_round)
             # Add all the candidates that are still running to the winning candidates list.
             for candidate in running_candidates:
                 current_round_winners.append(candidate)
@@ -148,20 +253,20 @@ class ElectionRace:
             # Check for a candidate that has managed to meet the droop quota.
             for candidate in sorted(current_round_scores, key=current_round_scores.get, reverse=True):
                 if candidate in running_candidates and current_round_scores[candidate] >= self.droop_quota():
-                    self.logger.debug("%s candidate in %s race has met the droop quota of %d.", candidate, self, self.droop_quota())
+                    self.logger.info("(Race: %s, Round: %s) Candidate `%s` has met the droop quota of %d.", self, current_round, candidate, self.droop_quota())
                     current_round_winners.append(candidate)
 
         # Check if current round winners is greater than available spots.
         while len(current_round_winners) > max_round_winners:
-            self.logger.debug("Number of possible winners in %s race exceeds %d available spots.", max_round_winners)
+            self.logger.info("(Race: %s, Round: %s) Number of possible winners exceeds %d available spots.", self, current_round, max_round_winners)
             # Check the last couple of round winners.
             if current_round_scores[current_round_winners[-1]] != current_round_scores[current_round_winners[-2]]:
                 # The two scores are not the same, so remove
                 # the lowest of the two candidates.
-                self.logger.debug("Candidate %s had less votes than candidate %s and has been removed from the potential winners list in %s race.", current_round_winners[-1], current_round_winners[-2], self)
+                self.logger.info("(Race: %s, Round: %s) Candidate `%s` had less votes than candidate `%s` and has been removed from the list of possible winners.", self, current_round, current_round_winners[-1], current_round_winners[-2])
                 del current_round_winners[-1]
             else:
-                self.logger.debug("Finding candidates in the potential winners for %s race that have the lowest score.", self)
+                self.logger.info("(Race: %s, Round: %s) Finding candidates in the list of potential winners that have the lowest score.", self, current_round)
                 # Check the last round winners to see how many of them have
                 # the same lowest score.
                 lowest_winner_score = current_round_scores[current_round_winners[-1]]
@@ -171,30 +276,30 @@ class ElectionRace:
                     if current_round_scores[candidate] == lowest_winner_score:
                         lowest_winners.append(candidate)
 
-                self.logger.debug("Found %d candidates in %s race within potential winners that had the lowest score of %d.", len(lowest_winners), self, lowest_winner_score)
+                self.logger.info("(Race: %s, Round: %s) Found %d candidates within the list of potential winners that had the lowest score of %d.", self, current_round, len(lowest_winners), lowest_winner_score)
 
                 # Order the lowest winners by their score in previous round.
                 previous_round = self.get_round_previous(current_round)
 
                 while len(current_round_winners) > max_round_winners:
-                    self.logger.debug("Comparing candidate scores from previous round (%s) in %s race.", previous_round, self)
+                    self.logger.info("(Race: %s, Round: %s) Comparing candidate scores from previous round. (Previous Round: %s)", self, current_round, previous_round)
                     previous_round_scores = previous_round.get_candidates_score()
                     previous_round_lowest_winners = sorted(lowest_winners, key=lambda sort_candidate: previous_round_scores[sort_candidate], reverse=True)
 
                     if previous_round_scores[previous_round_lowest_winners[-1]] != previous_round_scores[previous_round_lowest_winners[-2]]:
-                        self.logger.debug("Candidate %s had less votes than candidate %s and has been removed from the potential winners list in %s race.", previous_round_lowest_winners[-1], previous_round_lowest_winners[-2], self)
+                        self.logger.info("(Race: %s, Round: %s) Candidate `%s` had less votes than candidate `%s` in the previous round and has been removed from the list of potential winners.", self, current_round, previous_round_lowest_winners[-1], previous_round_lowest_winners[-2])
                         current_round_winners.remove(previous_round_lowest_winners[-1])
                         lowest_winners.remove(previous_round_lowest_winners[-1])
                     else:
                         previous_round = self.get_round_previous(previous_round)
-                        self.logger.debug("Candidates in %s race still tied, moving to previous round.", self)
+                        self.logger.info("(Race: %s, Round: %s) Candidates are still tied, moving to previous round.", self)
                         if previous_round is None:
-                            self.logger.error("Candidates are still tied in %s race. Exhausted available rounds to compare.", self)
+                            self.logger.critical("(Race: %s, Round: %s) Candidates are still tied and has exhausted available rounds to compare. Unable to continue.", self, current_round)
                             raise ElectionRaceError("Unable to resolve tie in round winners, candidates tied the entire race.")
 
         # Set winners in round.
         for candidate in current_round_winners:
-            self.logger.info("Candidate %s in %s race has won.", candidate, self)
+            self.logger.info("(Race: %s, Round: %s) Candidate `%s` has been elected with a score of %f.", self, current_round, candidate, current_round_scores[candidate])
             current_round.set_candidate_state(candidate, ElectionCandidateState(current_round, candidate, ElectionCandidateState.WON))
             candidate_voters = current_round.get_candidate_voters(candidate)
             candidate_ballots = current_round.get_candidate_ballots(candidate)
@@ -207,8 +312,10 @@ class ElectionRace:
             transfer_value = 1
             if surplus > 0:
                 transfer_value = float(surplus) / candidate_score
+            else:
+                surplus = 0
 
-            self.logger.info("Candidate %s vote transfer value is %f in round %s of %s race.", candidate, transfer_value, current_round, self)
+            self.logger.info("(Race: %s, Round: %s) Candidate `%s`'s vote transfer value is %f. (Surplus: %f)", self, current_round, candidate, transfer_value, surplus)
 
             # Set transfer value for each voter.
             for ballot in candidate_ballots:
@@ -220,57 +327,23 @@ class ElectionRace:
         # Check to see if there were any winners in the round.
         if current_round_winners:
             # Check if the number of race winners has been reached.
-            # If so, the race is complete.
+            # If so, eliminate the remaining candidates.
             if len(self._winners) == self._max_winners:
-
                 # Eliminate any remaining candidates.
-                self.logger.debug("Eliminating remaining candidates in %s race.", self)
-                for candidate in current_round.get_candidates_by_state()[ElectionCandidateState.RUNNING]:
-                    self.logger.debug("Eliminating candidate %s from %s race.", candidate, self)
+                eliminate_candidates = current_round.get_candidates_by_state()[ElectionCandidateState.RUNNING]
+                self.logger.info("(Race: %s, Round: %s) Max number of winners elected, eliminating remaining candidates. (Remaining Candidates: %d)", self, current_round, len(eliminate_candidates))
+                for candidate in eliminate_candidates:
+                    self.logger.info("(Race: %s, Round: %s) Eliminating candidate `%s`.", self, current_round, candidate)
                     current_round.set_candidate_state(candidate, ElectionCandidateState(current_round, candidate, ElectionCandidateState.ELIMINATED))
 
-                # End the current round.
-                self.logger.info("Round %s in %s race has completed.", current_round, self)
-                current_round.complete()
+            complete_current_round()
 
+            # Check to see if the race still has candidates that are running.
+            if len(current_round.get_candidates_by_state()[ElectionCandidateState.RUNNING]) == 0:
                 # Set the current state of the race to be complete.
-                self.logger.info("Race %s has completed with %d winner(s).", self, self._max_winners)
+                self.logger.info("(Race: %s) Race completed with %d winner(s). (Total Rounds: %d)", self, len(self._winners), len(self._rounds))
                 self._state = self.COMPLETE
-                return
 
-            # Complete the current round.
-            self.logger.info("Round %s in %s race has completed.", current_round, self)
-            current_round.complete()
-
-            # Get candidates that changed states in this round.
-            current_round_changed = current_round.get_candidates_changed()
-
-            # Create a new round and add the candidates in.
-            self.logger.info("Creating new round in %s race.", self)
-            new_round = ElectionRaceRound(self, current_round.round() + 1)
-            for candidate in self._candidates:
-                self.logger.debug("Adding candidate %s to %s race round %s.", candidate, self, new_round)
-                new_round.add_candidate(candidate, current_round.get_candidate_state(candidate))
-
-            # Add ballots for candidates that have NOT changed.
-            for candidate in self._candidates:
-                # Candidate changed, ignore ballots.
-                if candidate in current_round_changed:
-                    continue
-
-                transferable_ballots = current_round.get_candidate_ballots(candidate)
-                self.logger.debug("Transferring %d reusable ballots from %s candidate from round %s to round %s in %s race.", len(transferable_ballots), candidate, current_round, new_round, self)
-                for ballot in transferable_ballots:
-                    new_round.add_ballot(ballot)
-
-            # Transfer none ballots.
-            self.logger.debug("Transferring depleted ballots from round %s to round %s in %s race.", current_round, new_round, self)
-            transferable_ballots = current_round.get_candidate_ballots(None)
-            for ballot in transferable_ballots:
-                new_round.add_ballot(ballot)
-
-            # Append the new round to the list of rounds.
-            self._rounds.append(new_round)
             return
 
         # There were no round winners, now remove running candidates with a
@@ -294,45 +367,13 @@ class ElectionRace:
 
         # Eliminate candidates.
         for candidate in eliminated_candidates:
-            self.logger.info("Eliminating candidate %s in %s race.", candidate, self)
+            self.logger.info("(Race: %s, Round: %s) Eliminating candidate `%s`.", self, current_round, candidate)
             current_round.set_candidate_state(candidate, ElectionCandidateState(current_round, candidate, ElectionCandidateState.ELIMINATED))
 
             # Transfer voters that were part of that candidate.
             self._transfer_voters.extend(current_round.get_candidate_voters(candidate))
 
-        # Complete the current round.
-        self.logger.info("Round %s in %s race has completed.", current_round, self)
-        current_round.complete()
-
-        # Get any candidates that changed states in this round.
-        current_round_changed = current_round.get_candidates_changed()
-
-        # Create a new round and add the candidates in.
-        self.logger.info("Creating new round in %s race.", self)
-        new_round = ElectionRaceRound(self, current_round.round() + 1)
-        for candidate in self._candidates:
-            self.logger.debug("Adding candidate %s to %s race round %s.", candidate, self, new_round)
-            new_round.add_candidate(candidate, current_round.get_candidate_state(candidate))
-
-        # Add ballots for candidates that have NOT changed.
-        for candidate in self._candidates:
-            # Candidate changed, ignore ballots.
-            if candidate in current_round_changed:
-                continue
-
-            transferable_ballots = current_round.get_candidate_ballots(candidate)
-            self.logger.debug("Transferring %d reusable ballots from %s candidate from round %s to round %s in %s race.", len(transferable_ballots), candidate, current_round, new_round, self)
-            for ballot in transferable_ballots:
-                new_round.add_ballot(ballot)
-
-        # Transfer none ballots.
-        transferable_ballots = current_round.get_candidate_ballots(None)
-        self.logger.debug("Transferring depleted ballots from round %s to round %s in %s race.", current_round, new_round, self)
-        for ballot in transferable_ballots:
-            new_round.add_ballot(ballot)
-
-        # Append the new round to the list of rounds.
-        self._rounds.append(new_round)
+        complete_current_round()
         return
 
     def __str__(self):

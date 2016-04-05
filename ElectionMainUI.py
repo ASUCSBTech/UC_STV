@@ -216,6 +216,7 @@ class ElectionMainUI(wx.Frame):
 
     def ui_combobox_event(self, event):
         if event.GetEventObject() is self.combo_box_race:
+            self.logger.info("Changed display to `%s` race.", self.combo_box_race.GetStringSelection())
             self.change_race(self.combo_box_race_object[self.combo_box_race.GetStringSelection()])
         elif event.GetEventObject() is self.combo_box_round:
             selection_text = self.combo_box_round.GetStringSelection()
@@ -231,11 +232,15 @@ class ElectionMainUI(wx.Frame):
     def ui_complete_round(self, event):
         self.ui_disable_all()
 
+        self.logger.info("Received `%s` button click.", event.GetEventObject().GetLabelText())
+
         # Complete the current race.
         wx.lib.delayedresult.startWorker(self.ui_complete_action_done, self.complete_current_round)
 
     def ui_complete_race(self, event):
         self.ui_disable_all()
+
+        self.logger.info("Received `%s` button click.", event.GetEventObject().GetLabelText())
 
         # Complete the current round.
         wx.lib.delayedresult.startWorker(self.ui_complete_action_done, self.complete_current_race)
@@ -267,6 +272,7 @@ class ElectionMainUI(wx.Frame):
         if self._current_race is election_race:
             return
 
+        self.logger.info("Changed display to `%s` race.", election_race)
         self._current_race = election_race
         self.ui_update_rounds(False)
         self.ui_update_statusbar()
@@ -274,6 +280,8 @@ class ElectionMainUI(wx.Frame):
         self.label_quota.SetLabel("Race: " + election_race.position() + "\nRace Winning Quota: " + str(election_race.droop_quota()))
 
     def change_round(self, election_round):
+        if election_round is not self._current_round:
+            self.logger.info("Changed display to round `%s` of race `%s`.", election_round, election_round.parent())
         self._current_round = election_round
         self.grid_display.set_round(election_round)
         self.ui_update_statusbar()
@@ -312,9 +320,10 @@ class ElectionMainUI(wx.Frame):
             self.ui_update_statusbar()
             self._current_round.parent().run()
             self.grid_display.update()
-            time.sleep((self.slider_display_speed.GetMax()+1 - self.slider_display_speed.GetValue())*0.0001)
+            time.sleep((self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue()) * 0.0001)
             wx.Yield()
 
+        self._current_round.parent().run()
         self.ui_update_statusbar()
 
         self.grid_display.update()
