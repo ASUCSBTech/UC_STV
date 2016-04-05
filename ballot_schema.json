@@ -6,7 +6,7 @@
 			"properties": {
 				"ballot_id": {
 					"type": "string",
-					"description": "An unique ID that corresponds to a specific ballot."
+					"description": "A unique ID that corresponds to a specific ballot."
 				},
 				"ballot_data": {
 					"type": "object",
