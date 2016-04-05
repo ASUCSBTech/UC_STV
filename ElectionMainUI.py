@@ -316,12 +316,18 @@ class ElectionMainUI(wx.Frame):
         self.change_round(self._current_race.get_round_latest())
         self.combo_box_round.SetSelection(self.combo_box_round.FindString("Latest Round"))
 
+        refresh_every = 5
+        iteration = 0
+
         while self._current_round.state() != ElectionRaceRound.COMPLETE:
             self.ui_update_statusbar()
             self._current_round.parent().run()
-            self.grid_display.update()
+            if iteration % refresh_every == 0:
+                self.grid_display.update()
+
             time.sleep((self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue()) * 0.0001)
             wx.Yield()
+            iteration += 1
 
         self._current_round.parent().run()
         self.ui_update_statusbar()
