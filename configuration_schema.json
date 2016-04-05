@@ -30,7 +30,8 @@
 					}
 				}
 			},
-			"required": ["race_id", "race_position", "race_max_winners"]
+			"required": ["race_id", "race_position", "race_max_winners"],
+			"additionalProperties": false
 		}
 	},
 
