@@ -314,7 +314,7 @@ class WindowMain(wx.Frame):
         self.change_round(self._current_round.parent().get_round_latest())
         self.combo_box_round.SetSelection(self.combo_box_round.FindString("Latest Round"))
 
-        self._current_worker = TabulationThread(self, self._current_round, 5, self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue(), TabulationThread.TYPE_COMPLETE_RACE)
+        self._current_worker = TabulationThread(self, self._current_round, 50, self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue(), TabulationThread.TYPE_COMPLETE_RACE)
         self._current_worker.start()
         self.Bind(EVT_TABULATION_PROGRESS, self.tabulation_on_progress)
         self.Bind(EVT_TABULATION_COMPLETE, self.tabulation_on_complete)
@@ -325,7 +325,7 @@ class WindowMain(wx.Frame):
         self.change_round(self._current_round.parent().get_round_latest())
         self.combo_box_round.SetSelection(self.combo_box_round.FindString("Latest Round"))
 
-        self._current_worker = TabulationThread(self, self._current_round, 5, self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue(), TabulationThread.TYPE_COMPLETE_ROUND)
+        self._current_worker = TabulationThread(self, self._current_round, 50, self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue(), TabulationThread.TYPE_COMPLETE_ROUND)
         self._current_worker.start()
         self.Bind(EVT_TABULATION_PROGRESS, self.tabulation_on_progress)
         self.Bind(EVT_TABULATION_COMPLETE, self.tabulation_on_complete)
