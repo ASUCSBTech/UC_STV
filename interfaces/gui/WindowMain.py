@@ -352,7 +352,7 @@ class TabulationThread(threading.Thread):
         self._update_interval = update_interval
         self._processing_delay = processing_delay
         self._completion_type = completion_type
-        self.logging = logging.getLogger("application.election.tabulator_thread")
+        self.logging = logging.getLogger("ui.tabulator_thread")
 
     def set_update_interval(self, update_interval):
         self.logging.debug("Changed update interval to `%d`.", update_interval)
