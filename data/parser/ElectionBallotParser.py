@@ -83,16 +83,16 @@ def parse(ballot_file_path, races):
             # Loop through each race and get preferences.
             ballot_race_data = {}
             for race in races:
-                race_preferences = [None] * len(race.candidates())
+                race_preferences = [None] * len(race.candidates()) + 1
                 for column in ballot_columns[race]:
                     try:
                         if ballot_file_data[1][column].strip() == "Write-In":
-                            race_order = float(ballot_file_data[row][column])
+                            race_order = int(ballot_file_data[row][column])
                             if ballot_file_data[row][column + 1].strip():
-                                race_preferences[int(race_order)] = race.get_candidate(ballot_file_data[row][column + 1].strip()).id()
+                                race_preferences[race_order] = race.get_candidate(ballot_file_data[row][column + 1].strip()).id()
                         else:
-                            race_order = float(ballot_file_data[row][column])
-                            race_preferences[int(race_order)] = race.get_candidate(ballot_file_data[1][column].strip()).id()
+                            race_order = int(ballot_file_data[row][column])
+                            race_preferences[race_order] = race.get_candidate(ballot_file_data[1][column].strip()).id()
                     except ValueError:
                         pass
                 # Remove zeroth index (None) since candidates are ordered from 1 to N.
