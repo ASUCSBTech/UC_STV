@@ -261,6 +261,11 @@ class ElectionRace:
 
         running_candidates = current_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_PRE_STATE)[ElectionCandidateState.RUNNING]
 
+        # Check if there are any remaining candidates that are still running.
+        if len(running_candidates) == 0:
+            self.logger.info("(Race: %s) Race has completed, no candidates remaining in race. (Total Rounds: %d)", self, len(self._rounds))
+            self._state = self.COMPLETE
+
         # Calculate the maximum number of winners that can be taken this round.
         max_round_winners = self._max_winners - len(self._winners)
 
@@ -375,6 +380,8 @@ class ElectionRace:
         for candidate in running_candidates:
             if current_round_scores[candidate] == 0:
                 eliminated_candidates.append(candidate)
+
+        lowest_candidates = []
 
         # Find a candidate that is not already eliminated.
         for candidate in running_candidates:
