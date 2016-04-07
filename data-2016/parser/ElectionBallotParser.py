@@ -96,7 +96,8 @@ def parse(ballot_file_path, races):
                 # and the number_of_write_in_spots is necessary to account for their
                 # indices even though there many not be any valid write-ins.
 
-                write_in_count = 1
+                # By default, races do not have write ins.
+                write_in_count = 0
                 if "parser_writein_fields" in race.extended_data():
                     write_in_count = race.extended_data()["parser_writein_fields"]
                 race_preferences = [None] * (1 + len(race.candidates()) + write_in_count)
