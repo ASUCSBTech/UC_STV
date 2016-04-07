@@ -15,6 +15,14 @@
       }
     },
     {
+      "race_id": "race_ivp",
+      "race_position": "Internal VP",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "A.S. Internal VP"
+      }
+    },
+    {
       "race_id": "race_evpla",
       "race_position": "External VP Local Affairs",
       "race_max_winners": 1,
