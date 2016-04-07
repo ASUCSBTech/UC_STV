@@ -83,7 +83,7 @@ def parse(ballot_file_path, races):
             # Loop through each race and get preferences.
             ballot_race_data = {}
             for race in races:
-                race_preferences = [None] * len(race.candidates()) + 1
+                race_preferences = [None] * (len(race.candidates()) + 1)
                 for column in ballot_columns[race]:
                     try:
                         if ballot_file_data[1][column].strip() == "Write-In":
