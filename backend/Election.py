@@ -1,14 +1,15 @@
-import sys
-import os
+import hashlib
 import importlib
 import importlib.machinery
-import logging
 import json
-import hashlib
-from ElectionRace import ElectionRace
-from ElectionCandidate import ElectionCandidate
-from ElectionVoter import ElectionVoter
-from ElectionError import ElectionError
+import logging
+import os
+import sys
+
+from backend.ElectionCandidate import ElectionCandidate
+from backend.ElectionError import ElectionError
+from backend.ElectionRace import ElectionRace
+from backend.ElectionVoter import ElectionVoter
 
 
 class Election:

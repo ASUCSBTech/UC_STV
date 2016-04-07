@@ -1,9 +1,12 @@
-from ElectionCandidateState import ElectionCandidateState
-from ElectionRaceRound import ElectionRaceRound
-from ElectionRaceError import ElectionRaceError
 import logging
-import terminaltables
 import math
+import sys
+
+import terminaltables
+
+from backend.ElectionCandidateState import ElectionCandidateState
+from backend.ElectionRaceError import ElectionRaceError
+from backend.ElectionRaceRound import ElectionRaceRound
 
 
 class ElectionRace:
@@ -95,6 +98,68 @@ class ElectionRace:
             return None
         return self._rounds[current_round_index - 1]
 
+    @staticmethod
+    def get_data_table(election_round):
+        _candidate_states = {
+            ElectionCandidateState.WON: "WON",
+            ElectionCandidateState.RUNNING: "RUNNING",
+            ElectionCandidateState.ELIMINATED: "ELIMINATED"
+        }
+
+        table_data = []
+
+        def round_down(value, places):
+            return math.floor(value * (10 ** places)) / float(10 ** places)
+
+        if election_round.state() is ElectionRaceRound.INCOMPLETE:
+            candidate_states = election_round.get_candidates_state(ElectionRaceRound.CANDIDATE_PRE_STATE)
+            candidate_state_groups = election_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_PRE_STATE)
+        else:
+            candidate_states = election_round.get_candidates_state(ElectionRaceRound.CANDIDATE_POST_STATE)
+            candidate_state_groups = election_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_POST_STATE)
+
+        candidate_scores = election_round.get_candidates_score()
+
+        droop_quota = election_round.parent().droop_quota()
+
+        score_resolution = 4
+
+        table_group_won = sorted(candidate_state_groups[ElectionCandidateState.WON], key=lambda sort_candidate: (election_round.round() - candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
+        for _candidate in table_group_won:
+            _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
+            table_data.append([
+                _candidate.name(),
+                _candidate.party(),
+                _candidate_states[ElectionCandidateState.WON],
+                str(droop_quota) + " (" + str(round_down(_candidate_score, score_resolution)) + ")",
+                str(_candidate_score / droop_quota)
+            ])
+
+        table_group_running = sorted(candidate_state_groups[ElectionCandidateState.RUNNING],
+                                     key=lambda sort_candidate: candidate_scores[sort_candidate], reverse=True)
+        for _candidate in table_group_running:
+            _candidate_score = candidate_scores[_candidate]
+            table_data.append([
+                _candidate.name(),
+                _candidate.party(),
+                _candidate_states[ElectionCandidateState.RUNNING],
+                str(round_down(_candidate_score, score_resolution)),
+                str(_candidate_score / droop_quota)
+            ])
+
+        table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED], key=lambda sort_candidate: (candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
+        for _candidate in table_group_eliminated:
+            _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
+            table_data.append([
+                _candidate.name(),
+                _candidate.party(),
+                _candidate_states[ElectionCandidateState.ELIMINATED],
+                "0 (" + str(round_down(_candidate_score, score_resolution)) + ")",
+                "0"
+            ])
+
+        return table_data
+
     def run(self):
         # Reusable run components.
         def create_new_round():
@@ -135,64 +200,21 @@ class ElectionRace:
                 # Complete the current round.
                 self.logger.info("(Race: %s, Round: %s) Round has completed.", self, current_round)
             else:
-                # Print final round data.
-                _candidate_states = {
-                    ElectionCandidateState.WON: "WON",
-                    ElectionCandidateState.RUNNING: "RUNNING",
-                    ElectionCandidateState.ELIMINATED: "ELIMINATED"
-                }
+                try:
+                    table_data = self.get_data_table(current_round)
+                    table_data[:0] = [[
+                        "Candidate",
+                        "Party",
+                        "Status",
+                        "Score",
+                        "Quota Percentage"
+                    ]]
 
-                table_data = [[
-                    "Candidate",
-                    "Party",
-                    "Status",
-                    "Score"
-                ]]
-
-                def round_down(value, places):
-                    return math.floor(value * (10 ** places)) / float(10 ** places)
-
-                candidate_state_groups = current_round.get_candidates_by_state()
-                candidate_states = current_round.get_candidates_state()
-                candidate_scores = current_round.get_candidates_score()
-
-                droop_quota = self.droop_quota()
-
-                score_resolution = 4
-
-                table_group_won = sorted(candidate_state_groups[ElectionCandidateState.WON], key=lambda sort_candidate: (current_round.round() - candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
-                for _candidate in table_group_won:
-                    _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
-                    table_data.append([
-                        _candidate.name(),
-                        _candidate.party(),
-                        _candidate_states[ElectionCandidateState.WON],
-                        str(droop_quota) + " (" + str(round_down(_candidate_score, score_resolution)) + ")"
-                    ])
-
-                table_group_running = sorted(candidate_state_groups[ElectionCandidateState.RUNNING], key=lambda sort_candidate: candidate_scores[sort_candidate], reverse=True)
-                for _candidate in table_group_running:
-                    _candidate_score = candidate_scores[_candidate]
-                    table_data.append([
-                        _candidate.name(),
-                        _candidate.party(),
-                        _candidate_states[ElectionCandidateState.RUNNING],
-                        str(round_down(_candidate_score, score_resolution))
-                    ])
-
-                table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED], key=lambda sort_candidate: (candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
-                for _candidate in table_group_eliminated:
-                    _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
-                    table_data.append([
-                        _candidate.name(),
-                        _candidate.party(),
-                        _candidate_states[ElectionCandidateState.ELIMINATED],
-                        "0 (" + str(round_down(_candidate_score, score_resolution)) + ")"
-                    ])
-
-                table = terminaltables.DoubleTable(table_data, title="Final Round Results")
-                table.inner_row_border = True
-                self.logger.info("(Race: %s, Round: %s) Round has completed.\n%s\nCandidates Affected: %s", self, current_round, table.table, ", ".join(map(str, current_round.get_candidates_changed())))
+                    table = terminaltables.DoubleTable(table_data, title=" Final Round Results ")
+                    table.inner_row_border = True
+                    self.logger.info("(Race: %s, Round: %s) Round has completed.\n%s\nCandidates Affected: %s", self, current_round, table.table, ", ".join(map(str, current_round.get_candidates_changed())))
+                except Exception as e:
+                    self.logger.error(e, exc_info=sys.exc_info())
 
         if self._state is self.COMPLETE:
             return

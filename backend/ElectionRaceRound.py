@@ -1,5 +1,6 @@
-from ElectionCandidateState import ElectionCandidateState
-from ElectionRaceError import ElectionRaceError
+from backend.ElectionCandidateState import ElectionCandidateState
+from backend.ElectionRaceError import ElectionRaceError
+import logging
 
 
 class ElectionRaceRound:
@@ -37,6 +38,8 @@ class ElectionRaceRound:
 
         self._state = self.INCOMPLETE
 
+        self.logger = logging.getLogger("application.election.round")
+
     def round(self):
         return self._round
 
@@ -65,6 +68,8 @@ class ElectionRaceRound:
 
         if ballot.candidate() is not None and ballot.candidate() not in self._candidates:
             raise ElectionRaceError("Candidate is not a valid candidate for election round.")
+
+        self.logger.debug("(Race: %s, Round: %s) Adding ballot for voter `%s`.", self._parent, self, ballot.voter())
 
         self._voters.append(ballot.voter())
         self._ballots.append(ballot)

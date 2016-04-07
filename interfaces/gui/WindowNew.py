@@ -1,12 +1,13 @@
-import wx
-import json
 import logging
 import sys
-from Election import Election
-from ElectionMainUI import ElectionMainUI
+
+import wx
+
+from interfaces.gui.WindowMain import WindowMain
+from backend.Election import Election
 
 
-class ElectionNewUI(wx.Dialog):
+class WindowNew(wx.Dialog):
     def __init__(self, *args, **kwds):
         wx.Dialog.__init__(self, *args, **kwds)
 
@@ -151,7 +152,7 @@ class ElectionNewUI(wx.Dialog):
         for race in election.get_race_all():
             race.run()
 
-        ElectionMainUI(None, election)
+        WindowMain(None, election)
         self.EndModal(wx.ID_OK)
 
     def ui_check_complete(self):

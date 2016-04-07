@@ -1,14 +1,22 @@
-import wx
-import wx.lib.delayedresult
-import time
 import logging
-from ElectionUIRacePanel import ElectionUIRacePanel
-from ElectionRace import ElectionRace
-from ElectionRaceRound import ElectionRaceRound
-from ElectionApplicationAbout import ElectionApplicationAbout
+import time
+import threading
+import sys
+
+import wx
+import wx.lib.newevent
+import wx.lib.delayedresult
+
+from interfaces.gui.DialogAbout import DialogAbout
+from interfaces.gui.PanelRaceTable import PanelRaceTable
+from backend.ElectionRace import ElectionRace
+from backend.ElectionRaceRound import ElectionRaceRound
+
+TabulationProgressEvent, EVT_TABULATION_PROGRESS = wx.lib.newevent.NewEvent()
+TabulationCompleteEvent, EVT_TABULATION_COMPLETE = wx.lib.newevent.NewEvent()
 
 
-class ElectionMainUI(wx.Frame):
+class WindowMain(wx.Frame):
 
     def __init__(self, parent, election):
         wx.Frame.__init__(self, parent, size=(900, 680))
@@ -66,12 +74,11 @@ class ElectionMainUI(wx.Frame):
         # Round combo-box option text to object relationship.
         self.combo_box_round_object = {}
 
-        # Current race and round.
-        self._current_race = None
+        # Current round.
         self._current_round = None
 
-        # Currently running a race/round.
-        self._current_running = False
+        # Current round worker.
+        self._current_worker = None
 
         self.show_ui()
         self.Centre()
@@ -118,9 +125,10 @@ class ElectionMainUI(wx.Frame):
         self.panel_display_select.Bind(wx.EVT_COMBOBOX, self.ui_combobox_event)
         self.slider_display_speed = wx.Slider(self.panel_display_select, wx.ID_ANY, 0, 0, 100)
         self.slider_display_speed.SetValue(90)
+        self.panel_display_select.Bind(wx.EVT_SLIDER, self.ui_slider_event)
 
         self.panel_display_grid = wx.Panel(self, wx.ID_ANY)
-        self.grid_display = ElectionUIRacePanel(self.panel_display_grid)
+        self.grid_display = PanelRaceTable(self.panel_display_grid)
 
         self.panel_display_control = wx.Panel(self, wx.ID_ANY)
         self.label_quota = wx.StaticText(self.panel_display_control, wx.ID_ANY, "")
@@ -197,20 +205,20 @@ class ElectionMainUI(wx.Frame):
 
         self.combo_box_race.SetItems(combo_box_text)
         self.change_race(election_races[0])
-        self.combo_box_race.SetSelection(self.combo_box_race.FindString(self._current_race.position()))
+        self.combo_box_race.SetSelection(self.combo_box_race.FindString(self._current_round.parent().position()))
 
         if "default_speed" in self.election.configuration()["general"]:
             self.logger.debug("Default tabulation speed set at `%d`.", self.election.configuration()["general"]["default_speed"])
             self.slider_display_speed.SetValue(self.election.configuration()["general"]["default_speed"])
 
     def show_about(self, event):
-        ElectionApplicationAbout(self)
+        DialogAbout(self)
 
     def show_new(self, event):
         if wx.MessageDialog(self, "There is currently an election open. Would you like to close this election?", caption="Confirm Close", style=wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE).ShowModal() == wx.ID_YES:
             self.Close(True)
-            from ElectionNewUI import ElectionNewUI
-            application_new_ui = ElectionNewUI(None)
+            from interfaces.gui.WindowNew import WindowNew
+            application_new_ui = WindowNew(None)
             application_new_ui.ShowModal()
             application_new_ui.Destroy()
 
@@ -229,21 +237,21 @@ class ElectionMainUI(wx.Frame):
         self.button_complete_round.Enable(button_state)
         self.button_complete_round.SetFocus()
 
+    def ui_slider_event(self, event):
+        if self._current_worker is None or not self._current_worker.is_alive():
+            return
+
+        self._current_worker.set_processing_delay(self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue())
+
     def ui_complete_round(self, event):
-        self.ui_disable_all()
-
         self.logger.info("Received `%s` button click.", event.GetEventObject().GetLabelText())
-
-        # Complete the current race.
-        wx.lib.delayedresult.startWorker(self.ui_complete_action_done, self.complete_current_round)
+        self.ui_disable_all()
+        self.complete_current_round()
 
     def ui_complete_race(self, event):
-        self.ui_disable_all()
-
         self.logger.info("Received `%s` button click.", event.GetEventObject().GetLabelText())
-
-        # Complete the current round.
-        wx.lib.delayedresult.startWorker(self.ui_complete_action_done, self.complete_current_race)
+        self.ui_disable_all()
+        self.complete_current_race()
 
     def ui_disable_all(self):
         # Disable the complete current round/race button
@@ -254,7 +262,7 @@ class ElectionMainUI(wx.Frame):
         self.combo_box_round.Enable(False)
         self.menu_file_new.Enable(False)
 
-    def ui_complete_action_done(self, result):
+    def ui_complete_action_done(self):
         self.combo_box_race.Enable(True)
         self.combo_box_round.Enable(True)
         self.menu_file_new.Enable(True)
@@ -262,36 +270,15 @@ class ElectionMainUI(wx.Frame):
             self.button_complete_race.Enable(True)
             self.button_complete_round.Enable(True)
 
-    def ui_update_statusbar(self):
-        if self._current_race is None or self._current_round is None:
-            return
-
-        self.SetStatusText("Race: " + self._election_states[self._current_race.state()] + " | Round: " + self._election_round_states[self._current_round.state()])
-
-    def change_race(self, election_race):
-        if self._current_race is election_race:
-            return
-
-        self.logger.info("Changed display to `%s` race.", election_race)
-        self._current_race = election_race
-        self.ui_update_rounds(False)
-        self.ui_update_statusbar()
-        self.change_round(election_race.get_round_latest())
-        self.label_quota.SetLabel("Race: " + election_race.position() + "\nRace Winning Quota: " + str(election_race.droop_quota()))
-
-    def change_round(self, election_round):
-        if election_round is not self._current_round:
-            self.logger.info("Changed display to round `%s` of race `%s`.", election_round, election_round.parent())
-        self._current_round = election_round
-        self.grid_display.set_round(election_round)
-        self.ui_update_statusbar()
+    def ui_update_statusbar(self, race_state, round_state):
+        self.SetStatusText("Race: " + self._election_states[race_state] + " | Round: " + self._election_round_states[round_state])
 
     def ui_update_rounds(self, preserve_selection=True):
         self.combo_box_round_object = {}
         combo_box_text = []
         current_selection = "Latest Round"
 
-        for election_round in self._current_race.rounds():
+        for election_round in self._current_round.parent().rounds():
             self.combo_box_round_object["Round " + str(election_round.round())] = election_round
             combo_box_text.append("Round " + str(election_round.round()))
 
@@ -306,32 +293,101 @@ class ElectionMainUI(wx.Frame):
         if current_selection_position is not wx.NOT_FOUND:
             self.combo_box_round.SetSelection(current_selection_position)
 
+    def change_race(self, election_race):
+        if self._current_round and election_race is self._current_round.parent():
+            return
+
+        self.change_round(election_race.get_round_latest())
+        self.ui_update_rounds(False)
+        self.label_quota.SetLabel("Race: " + election_race.position() + "\nRace Winning Quota: " + str(election_race.droop_quota()))
+
+    def change_round(self, election_round):
+        if election_round is not self._current_round:
+            self.logger.info("Changed display to round `%s` of race `%s`.", election_round, election_round.parent())
+        self._current_round = election_round
+        self.grid_display.update(ElectionRace.get_data_table(election_round))
+        self.ui_update_statusbar(election_round.parent().state(), election_round.state())
+
     def complete_current_race(self):
-        while self._current_race.state() != ElectionRace.COMPLETE:
-            self.complete_current_round()
-            wx.Yield()
+        # Jump to latest round.
+        self.ui_disable_all()
+        self.change_round(self._current_round.parent().get_round_latest())
+        self.combo_box_round.SetSelection(self.combo_box_round.FindString("Latest Round"))
+
+        self._current_worker = TabulationThread(self, self._current_round, 5, self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue(), TabulationThread.TYPE_COMPLETE_RACE)
+        self._current_worker.start()
+        self.Bind(EVT_TABULATION_PROGRESS, self.tabulation_on_progress)
+        self.Bind(EVT_TABULATION_COMPLETE, self.tabulation_on_complete)
 
     def complete_current_round(self):
         # Jump to latest round.
-        self.change_round(self._current_race.get_round_latest())
+        self.ui_disable_all()
+        self.change_round(self._current_round.parent().get_round_latest())
         self.combo_box_round.SetSelection(self.combo_box_round.FindString("Latest Round"))
 
-        refresh_every = 5
+        self._current_worker = TabulationThread(self, self._current_round, 5, self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue(), TabulationThread.TYPE_COMPLETE_ROUND)
+        self._current_worker.start()
+        self.Bind(EVT_TABULATION_PROGRESS, self.tabulation_on_progress)
+        self.Bind(EVT_TABULATION_COMPLETE, self.tabulation_on_complete)
+
+    def tabulation_on_progress(self, event):
+        self.grid_display.update(event.table_data)
+        self.ui_update_statusbar(event.race_state, event.round_state)
+
+    def tabulation_on_complete(self, event):
+        self._current_round = self._current_round.parent().get_round_latest()
+        self.grid_display.update(ElectionRace.get_data_table(self._current_round))
+        self.ui_update_rounds()
+        self.ui_complete_action_done()
+
+
+class TabulationThread(threading.Thread):
+    (TYPE_COMPLETE_ROUND, TYPE_COMPLETE_RACE) = range(2)
+
+    def __init__(self, notify_window, election_round, update_interval, processing_delay, completion_type):
+        threading.Thread.__init__(self)
+        self._notify_window = notify_window
+        self._election_round = election_round
+        self._update_interval = update_interval
+        self._processing_delay = processing_delay
+        self._completion_type = completion_type
+        self.logging = logging.getLogger("application.election.tabulator_thread")
+
+    def set_update_interval(self, update_interval):
+        self.logging.debug("Changed update interval to `%d`.", update_interval)
+        self._update_interval = update_interval
+
+    def set_processing_delay(self, processing_delay):
+        self.logging.debug("Changed processing delay to `%d`.", processing_delay)
+        self._processing_delay = processing_delay
+
+    def run(self):
+        self.logging.debug("Starting election tabulator thread.")
+        try:
+            if self._completion_type is self.TYPE_COMPLETE_ROUND:
+                self.complete_round()
+            elif self._completion_type is self.TYPE_COMPLETE_RACE:
+                parent_election = self._election_round.parent()
+                while parent_election.state() != ElectionRace.COMPLETE:
+                    self.complete_round()
+                    self._election_round = parent_election.get_round_latest()
+        except Exception as e:
+            self.logging.error(e, exc_info=sys.exc_info())
+
+        wx.PostEvent(self._notify_window, TabulationCompleteEvent())
+        self.logging.debug("Completed election tabulator thread.")
+
+    def complete_round(self):
         iteration = 0
 
-        while self._current_round.state() != ElectionRaceRound.COMPLETE:
-            self.ui_update_statusbar()
-            self._current_round.parent().run()
-            if iteration % refresh_every == 0:
-                self.grid_display.update()
-
-            time.sleep((self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue()) * 0.0001)
-            wx.Yield()
+        while self._election_round.state() != ElectionRaceRound.COMPLETE:
+            self._election_round.parent().run()
+            if iteration % self._update_interval == 0:
+                table_data = ElectionRace.get_data_table(self._election_round)
+                race_state = self._election_round.parent().state()
+                round_state = self._election_round.state()
+                wx.PostEvent(self._notify_window, TabulationProgressEvent(race_state=race_state, round_state=round_state, table_data=table_data))
+            time.sleep(self._processing_delay * 0.0001)
             iteration += 1
 
-        self._current_round.parent().run()
-        self.ui_update_statusbar()
-
-        self.grid_display.update()
-        wx.Yield()
-        self.ui_update_rounds()
+        self._election_round.parent().run()

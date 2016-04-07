@@ -1,4 +1,4 @@
-from ElectionError import ElectionError
+from backend.ElectionError import ElectionError
 
 
 class ElectionRaceError(ElectionError):

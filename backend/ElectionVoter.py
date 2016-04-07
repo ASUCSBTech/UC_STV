@@ -1,4 +1,5 @@
-from ElectionRaceVoterBallot import ElectionRaceVoterBallot
+import logging
+from backend.ElectionRaceVoterBallot import ElectionRaceVoterBallot
 
 
 class ElectionVoter:
@@ -7,6 +8,7 @@ class ElectionVoter:
         self._races = []
         self._race_preferences = {}
         self._race_value = {}
+        self.logger = logging.getLogger("application.election.voter")
 
     def add_race(self, election_race):
         self._races.append(election_race)
@@ -24,6 +26,8 @@ class ElectionVoter:
         ballot_value = self.get_race_voter_value(election_race, election_round)
         if ballot_value is None:
             ballot_value = 1
+
+        self.logger.debug("(Race: %s, Round: %s, Voter: %s) Generating ballot.", election_race, election_round, self)
 
         return ElectionRaceVoterBallot(election_race, self, ballot_candidate, ballot_value)
 

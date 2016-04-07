@@ -1,7 +1,7 @@
 import wx.adv
 
 
-class ElectionApplicationAbout:
+class DialogAbout:
     def __init__(self, parent):
         about_info = wx.adv.AboutDialogInfo()
         about_info.SetName("UCSB AS Election Tabulator")
