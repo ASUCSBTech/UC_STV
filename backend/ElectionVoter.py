@@ -33,7 +33,8 @@ class ElectionVoter:
 
         new_value = {
             "value": voter_value,
-            "round": election_round
+            "round": election_round,
+            "round_number": election_round.round()
         }
 
         self._race_value[election_race].append(new_value)
@@ -41,8 +42,9 @@ class ElectionVoter:
     def get_race_voter_value(self, election_race, election_round):
         # Attempt to find the last value assigned to the race
         # prior to the round given.
+        target_round = election_round.round()
         for value in reversed(self._race_value[election_race]):
-            if value["round"].round() < election_round.round():
+            if value["round_number"] < target_round:
                 return value["value"]
         return None
 
