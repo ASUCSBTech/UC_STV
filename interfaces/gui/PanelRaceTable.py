@@ -60,12 +60,13 @@ class PanelRaceTable(wx.Panel):
         if event and self.GetAutoLayout():
             self.Layout()
 
-    def update(self, table_data):
+    def update(self, table_data, update_layout=True):
         self.grid.GetTable().set_table_data(table_data)
-        self.grid.AutoSizeColumns(setAsMin=False)
-        self.grid.SetColSize(2, 90)
-        self.grid.SetColSize(3, 110)
-        self.on_size(None)
+        if update_layout:
+            self.grid.AutoSizeColumns(setAsMin=False)
+            self.grid.SetColSize(2, 90)
+            self.grid.SetColSize(3, 110)
+            self.on_size(None)
         self.grid.ForceRefresh()
 
     class RaceGridData(wx.grid.GridTableBase):

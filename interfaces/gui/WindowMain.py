@@ -331,7 +331,7 @@ class WindowMain(wx.Frame):
         self.Bind(EVT_TABULATION_COMPLETE, self.tabulation_on_complete)
 
     def tabulation_on_progress(self, event):
-        self.grid_display.update(event.table_data)
+        self.grid_display.update(event.table_data, update_layout=False)
         self.ui_update_statusbar(event.race_state, event.round_state)
 
     def tabulation_on_complete(self, event):
