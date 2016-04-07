@@ -229,7 +229,7 @@ class WindowMain(wx.Frame):
         elif event.GetEventObject() is self.combo_box_round:
             selection_text = self.combo_box_round.GetStringSelection()
             if selection_text == "Latest Round":
-                self.change_round(self._current_race.get_round_latest())
+                self.change_round(self._current_round.parent().get_round_latest())
             else:
                 self.change_round(self.combo_box_round_object[selection_text])
         button_state = self._current_round.parent().state() != ElectionRace.COMPLETE
