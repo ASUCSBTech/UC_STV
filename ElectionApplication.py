@@ -19,11 +19,13 @@ def main(argv=None):
     parser_group_logging = parser.add_argument_group("Logging")
     parser_group_logging.add_argument("-l", "--log", help="Enable/disable logging for the application.", action="store_true", dest="log_enabled")
     parser_group_logging.add_argument("-ll", "--log-level", help="Level of logging.", default="DEBUG", dest="log_level")
-    parser_group_logging.add_argument("-ld", "--log-destination", help="Set the log output directory.", default="./", dest="log_destination")
+    parser_group_logging.add_argument("-ld", "--log-destination", help="Set the log output directory.", default="./logs/", dest="log_destination")
 
     parsed_arguments = parser.parse_args(argv[1:])
 
     parsed_arguments.log_destination = os.path.normpath(os.path.join(os.path.join(os.path.dirname(__file__)), parsed_arguments.log_destination))
+    if not os.path.exists(parsed_arguments.log_destination):
+        os.makedirs(parsed_arguments.log_destination)
 
     # Setup logging in the application.
     logger = logging.getLogger("election")
