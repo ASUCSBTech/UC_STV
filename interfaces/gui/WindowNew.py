@@ -39,7 +39,7 @@ class WindowNew(wx.Dialog):
         self.ballot_file = None
 
         # Logger
-        self.logger = logging.getLogger("application.ui.new")
+        self.logger = logging.getLogger("ui.new")
 
         self.show_ui()
         self.Centre()

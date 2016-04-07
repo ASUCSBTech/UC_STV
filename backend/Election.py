@@ -21,7 +21,7 @@ class Election:
         # Race and race ID relationship.
         self._race_id = {}
 
-        self.logger = logging.getLogger("application.election")
+        self.logger = logging.getLogger("election")
 
         self.logger.info("Parsing configuration file at `%s`. (SHA-512 Hash: `%s`)", configuration_file_path, hashlib.sha512(open(configuration_file_path, "rb").read()).hexdigest())
         with open(configuration_file_path, encoding="utf-8") as configuration_file:

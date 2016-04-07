@@ -21,7 +21,7 @@ class WindowMain(wx.Frame):
     def __init__(self, parent, election):
         wx.Frame.__init__(self, parent, size=(900, 680))
 
-        self.logger = logging.getLogger("application.ui.main")
+        self.logger = logging.getLogger("ui.main")
 
         self.election = election
 

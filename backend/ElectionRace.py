@@ -25,7 +25,7 @@ class ElectionRace:
         self._candidates = []
         self._transfer_voters = []
 
-        self.logger = logging.getLogger("application.election.race")
+        self.logger = logging.getLogger("election")
 
         # Candidate and candidate ID relationship.
         self._candidate_id = {}

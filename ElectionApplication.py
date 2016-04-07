@@ -26,7 +26,7 @@ def main(argv=None):
     parsed_arguments.log_destination = os.path.normpath(os.path.join(os.path.join(os.path.dirname(__file__)), parsed_arguments.log_destination))
 
     # Setup logging in the application.
-    logger = logging.getLogger("application")
+    logger = logging.getLogger("election")
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(process)d: %(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
