@@ -49,16 +49,10 @@
 # Last Modified: February 24, 2016
 ###############
 import csv
-import os
 
 
 def parse(candidate_file_path, races):
     candidates_data = {}
-
-    whitelist_file_path = os.path.normpath(os.path.join(os.path.join(os.path.dirname(__file__)), "../whitelist_candidates.txt"))
-
-    with open(whitelist_file_path, encoding="UTF-8", errors="ignore") as whitelist_file:
-        write_in_whitelist = [line.strip() for line in whitelist_file]
 
     # Open the ballot file.
     with open(candidate_file_path, encoding="UTF-8", errors="ignore") as candidate_file:
@@ -77,6 +71,9 @@ def parse(candidate_file_path, races):
 
         for race in races:
             candidates = []
+            write_in_whitelist = []
+            if "parser_writein_whitelist" in race.extended_data():
+                write_in_whitelist = race.extended_data()["parser_writein_whitelist"]
             candidates_write_ins = []
             for column_index in race_columns[race]:
                 if candidate_file_data[1][column_index].startswith("Write-In"):

@@ -89,14 +89,17 @@ def parse(ballot_file_path, races):
             ballot_race_data = {}
             for race in races:
                 # Note: The size of the race_preferences array must be calculated as:
-                # number_of_candidates + 1 + number_of_write_in_spots
+                # 1 + number_of_candidates + number_of_write_in_spots
                 #
                 # This is because the race_preferences array is zero indexed, the
                 # zeroth element is popped off the list prior to submitting the ballot
                 # and the number_of_write_in_spots is necessary to account for their
                 # indices even though there many not be any valid write-ins.
 
-                race_preferences = [None] * (len(race.candidates()) + 2)
+                write_in_count = 1
+                if "parser_writein_fields" in race.extended_data():
+                    write_in_count = race.extended_data()["parser_writein_fields"]
+                race_preferences = [None] * (1 + len(race.candidates()) + write_in_count)
                 for column in ballot_columns[race]:
                     try:
                         if ballot_file_data[1][column].strip() == "Write-In":
