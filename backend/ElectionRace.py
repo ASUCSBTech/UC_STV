@@ -126,7 +126,7 @@ class ElectionRace:
 
         score_resolution = 4
 
-        table_group_won = sorted(candidate_state_groups[ElectionCandidateState.WON], key=lambda sort_candidate: (election_round.round() - candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
+        table_group_won = sorted(candidate_state_groups[ElectionCandidateState.WON], key=lambda sort_candidate: (-1 * (election_round.round() - candidate_states[sort_candidate].round().round()), -1 * (candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), sort_candidate.name()))
         for _candidate in table_group_won:
             _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
             table_data.append([
@@ -137,8 +137,7 @@ class ElectionRace:
                 str(_candidate_score / droop_quota)
             ])
 
-        table_group_running = sorted(candidate_state_groups[ElectionCandidateState.RUNNING],
-                                     key=lambda sort_candidate: candidate_scores[sort_candidate], reverse=True)
+        table_group_running = sorted(candidate_state_groups[ElectionCandidateState.RUNNING], key=lambda sort_candidate: (-1 * candidate_scores[sort_candidate], sort_candidate.name()))
         for _candidate in table_group_running:
             _candidate_score = candidate_scores[_candidate]
             table_data.append([
@@ -149,7 +148,7 @@ class ElectionRace:
                 str(_candidate_score / droop_quota)
             ])
 
-        table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED], key=lambda sort_candidate: (candidate_states[sort_candidate].round().round(), candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), reverse=True)
+        table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED], key=lambda sort_candidate: (-1 * (candidate_states[sort_candidate].round().round()), -1 * (candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), sort_candidate.name()))
         for _candidate in table_group_eliminated:
             _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
             table_data.append([
