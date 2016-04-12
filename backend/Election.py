@@ -74,12 +74,14 @@ class Election:
             progress_dialog.Fit()
         self.logger.info("Parsing ballot file at `%s`. (SHA-512 Hash: `%s`)", ballot_file_path, hashlib.sha512(open(ballot_file_path, "rb").read()).hexdigest())
         ballot_data = self.ballot_parser.parse(ballot_file_path, self._races)
+        ballot_count = len(ballot_data)
         if progress_dialog:
-            progress_dialog.SetRange(len(ballot_data))
-            progress_dialog.Update(0, "Adding " + str(len(ballot_data)) + " voters to election races.")
+            if ballot_count > 0:
+                progress_dialog.SetRange(ballot_count)
+            progress_dialog.Update(0, "Adding %d voter(s) to election races." % ballot_count)
             progress_dialog.Fit()
-        self.logger.info("Adding %d voters to election.", len(ballot_data))
-        for ballot_number in range(len(ballot_data)):
+        self.logger.info("Adding %d voters to election.", ballot_count)
+        for ballot_number in range(ballot_count):
             self.logger.debug("Processing ballot for voter #%d.", ballot_number)
             ballot = ballot_data[ballot_number]
             voter = ElectionVoter(ballot["ballot_id"])
