@@ -43,7 +43,9 @@
       "race_position": "Student Advocate",
       "race_max_winners": 1,
       "race_extended_data": {
-        "parser_group": "A.S. Student Advocate General"
+        "parser_group": "A.S. Student Advocate General",
+        "parser_writein_fields": 1,
+        "parser_writein_whitelist": ["Batman"]
       }
     },
     {
@@ -51,7 +53,9 @@
       "race_position": "On-Campus Senator",
       "race_max_winners": 5,
       "race_extended_data": {
-        "parser_group": "A.S. On-Campus Senator"
+        "parser_group": "A.S. On-Campus Senator",
+        "parser_writein_fields": 1,
+        "parser_writein_whitelist": ["Superman"]
       }
     },
     {

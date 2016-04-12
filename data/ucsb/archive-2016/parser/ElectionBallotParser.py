@@ -53,13 +53,18 @@
 # The candidate_id should correspond to the value
 # returned by the election candidate parser.
 #
-# Last Modified: February 24, 2016
+# Last Modified: April 12, 2016
 ###############
 import csv
 
 
+class WriteInInvalid:
+    pass
+
+
 def parse(ballot_file_path, races):
     ballots_data = []
+    invalid_writein = WriteInInvalid()
 
     # Open the ballot file.
     with open(ballot_file_path, encoding="UTF-8", errors="ignore") as ballot_file:
@@ -83,13 +88,30 @@ def parse(ballot_file_path, races):
             # Loop through each race and get preferences.
             ballot_race_data = {}
             for race in races:
-                race_preferences = [None] * (len(race.candidates()) + 1)
+                # Note: The size of the race_preferences array must be calculated as:
+                # 1 + number_of_candidates + number_of_write_in_spots
+                #
+                # This is because the race_preferences array is zero indexed, the
+                # zeroth element is popped off the list prior to submitting the ballot
+                # and the number_of_write_in_spots is necessary to account for their
+                # indices even though there many not be any valid write-ins.
+
+                # By default, races do not have write ins.
+                write_in_count = 0
+                if "parser_writein_fields" in race.extended_data():
+                    write_in_count = race.extended_data()["parser_writein_fields"]
+                race_preferences = [None] * (1 + len(race.candidates()) + write_in_count)
                 for column in ballot_columns[race]:
                     try:
                         if ballot_file_data[1][column].strip() == "Write-In":
                             race_order = int(ballot_file_data[row][column])
-                            if ballot_file_data[row][column + 1].strip():
-                                race_preferences[race_order] = race.get_candidate(ballot_file_data[row][column + 1].strip()).id()
+                            candidate_id = ballot_file_data[row][column + 1].strip()
+                            if candidate_id:
+                                candidate = race.get_candidate(candidate_id)
+                                if candidate:
+                                    race_preferences[race_order] = candidate.id()
+                                else:
+                                    race_preferences[race_order] = invalid_writein
                         else:
                             race_order = int(ballot_file_data[row][column])
                             race_preferences[race_order] = race.get_candidate(ballot_file_data[1][column].strip()).id()
@@ -97,6 +119,7 @@ def parse(ballot_file_path, races):
                         pass
                 # Remove zeroth index (None) since candidates are ordered from 1 to N.
                 race_preferences.pop(0)
+                race_preferences = list(filter(lambda element: element is not invalid_writein, race_preferences))
                 try:
                     preference_max = race_preferences.index(None)
                     race_preferences = race_preferences[0:preference_max]

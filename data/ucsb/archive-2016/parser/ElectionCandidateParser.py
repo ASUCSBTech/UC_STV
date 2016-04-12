@@ -46,7 +46,7 @@
 # each candidate in each race. The candidate_id should
 # NOT be repeated in another race.
 #
-# Last Modified: February 24, 2016
+# Last Modified: April 12, 2016
 ###############
 import csv
 
@@ -71,20 +71,17 @@ def parse(candidate_file_path, races):
 
         for race in races:
             candidates = []
-            candidates_write_ins = []
+            if "parser_writein_whitelist" in race.extended_data():
+                write_in_whitelist = race.extended_data()["parser_writein_whitelist"]
+                for candidate in write_in_whitelist:
+                    candidates.append({
+                        "candidate_id": candidate,
+                        "candidate_name": candidate,
+                        "candidate_party": "Independent"
+                    })
+
             for column_index in race_columns[race]:
                 if candidate_file_data[1][column_index].startswith("Write-In"):
-                    # Process write in candidates.
-                    if candidate_file_data[1][column_index].endswith("TEXT"):
-                        for row in range(2, len(candidate_file_data)):
-                            candidate_id = candidate_file_data[row][column_index].strip()
-                            if candidate_id and candidate_id not in candidates_write_ins:
-                                candidates.append({
-                                    "candidate_id": candidate_id,
-                                    "candidate_name": candidate_id,
-                                    "candidate_party": "Independent"
-                                })
-                                candidates_write_ins.append(candidate_id)
                     continue
 
                 (candidate_name, candidate_party) = candidate_file_data[1][column_index].rsplit("-", 1)
@@ -93,6 +90,7 @@ def parse(candidate_file_path, races):
                     "candidate_name": candidate_name.strip(),
                     "candidate_party": candidate_party.strip()
                 })
+
             candidates_data[race.id()] = candidates
 
     return candidates_data

@@ -7,7 +7,7 @@
   },
   "races": [
     {
-      "race_id": 1,
+      "race_id": "race_president",
       "race_position": "President",
       "race_max_winners": 1,
       "race_extended_data": {
@@ -15,15 +15,17 @@
       }
     },
     {
-      "race_id": 2,
+      "race_id": "race_ivp",
       "race_position": "Internal VP",
       "race_max_winners": 1,
       "race_extended_data": {
-        "parser_group": "A.S. Internal VP"
+        "parser_group": "A.S. Internal VP",
+        "parser_writein_fields": 2,
+        "parser_writein_whitelist": ["Melker Knutson", "Roland Eriksson", "Benjamin Abramsson"]
       }
     },
     {
-      "race_id": 3,
+      "race_id": "race_evpla",
       "race_position": "External VP Local Affairs",
       "race_max_winners": 1,
       "race_extended_data": {
@@ -31,7 +33,7 @@
       }
     },
     {
-      "race_id": 4,
+      "race_id": "race_evpsa",
       "race_position": "External VP Statewide Affairs",
       "race_max_winners": 1,
       "race_extended_data": {
@@ -39,7 +41,7 @@
       }
     },
     {
-      "race_id": 5,
+      "race_id": "race_sa",
       "race_position": "Student Advocate",
       "race_max_winners": 1,
       "race_extended_data": {
@@ -47,7 +49,7 @@
       }
     },
     {
-      "race_id": 6,
+      "race_id": "race_oncs",
       "race_position": "On-Campus Senator",
       "race_max_winners": 5,
       "race_extended_data": {
@@ -55,7 +57,7 @@
       }
     },
     {
-      "race_id": 7,
+      "race_id": "race_offcs",
       "race_position": "Off-Campus Senator",
       "race_max_winners": 13,
       "race_extended_data": {
@@ -63,7 +65,7 @@
       }
     },
     {
-      "race_id": 8,
+      "race_id": "race_ocuos",
       "race_position": "Off-Campus University Owned Senator",
       "race_max_winners": 1,
       "race_extended_data": {
@@ -71,7 +73,7 @@
       }
     },
     {
-      "race_id": 9,
+      "race_id": "race_csls",
       "race_position": "Collegiate Senator - Letters & Science",
       "race_max_winners": 4,
       "race_extended_data": {
@@ -79,7 +81,7 @@
       }
     },
     {
-      "race_id": 10,
+      "race_id": "race_cscs",
       "race_position": "Collegiate Senator - Creative Studies",
       "race_max_winners": 1,
       "race_extended_data": {
@@ -87,7 +89,7 @@
       }
     },
     {
-      "race_id": 11,
+      "race_id": "race_cse",
       "race_position": "Collegiate Senator - Engineering",
       "race_max_winners": 1,
       "race_extended_data": {

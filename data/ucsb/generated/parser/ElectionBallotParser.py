@@ -3,8 +3,8 @@
 #
 # This ballot parser has been tailored to the ballot
 # system used by UCSB. If you use another software
-# to define ballots, ensure the data returned by the
-# ballot parser returns data in the following fashion:
+# to define ballots, ensure the data-ucsb returned by the
+# ballot parser returns data-ucsb in the following fashion:
 #
 # [
 #    {
@@ -53,7 +53,7 @@
 # The candidate_id should correspond to the value
 # returned by the election candidate parser.
 #
-# Last Modified: February 24, 2016
+# Last Modified: April 12, 2016
 ###############
 import csv
 
