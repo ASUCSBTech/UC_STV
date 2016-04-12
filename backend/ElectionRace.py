@@ -315,6 +315,9 @@ class ElectionRace:
 
                 # Order the lowest winners by their score in previous round.
                 previous_round = self.get_round_previous(current_round)
+                if previous_round is None:
+                    self.logger.critical("(Race: %s, Round: %s) Candidates are tied and there are no previous rounds available to compare. Unable to continue.", self, current_round)
+                    raise ElectionRaceError("Unable to resolve tie in round winners, candidates tied the entire race.")
 
                 while len(current_round_winners) > max_round_winners:
                     self.logger.info("(Race: %s, Round: %s) Comparing candidate scores from previous round. (Previous Round: %s)", self, current_round, previous_round)
