@@ -74,7 +74,7 @@ def main():
                         pass
         return_candidate_data.append(row_data)
 
-    with open("./ballot_data.csv", "w", newline="") as csv_file:
+    with open(os.path.normpath(os.path.join(base_path, "./ballot_data.csv")), "w", newline="") as csv_file:
         csv_writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
         for row in return_candidate_data:
             csv_writer.writerow(row)
