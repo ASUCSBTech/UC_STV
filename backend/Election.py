@@ -2,6 +2,7 @@ import hashlib
 import importlib
 import importlib.machinery
 import json
+import jsonschema
 import logging
 import os
 import sys
@@ -18,14 +19,39 @@ class Election:
         self._races = []
         self._voters = []
 
+        self._configuration_schema = None
+        self._candidate_schema = None
+        self._ballot_schema = None
+
         # Race and race ID relationship.
         self._race_id = {}
 
         self.logger = logging.getLogger("election")
 
+        # Load validation schemas, if this process fails, log it and then continue.
+        base_path = os.path.normpath(os.path.join(os.path.join(os.path.dirname(__file__)), "../schemas/"))
+        if os.path.isdir(base_path):
+            try:
+                with open(os.path.normpath(os.path.join(base_path, "./configuration_schema.json"))) as configuration_schema_file:
+                    self._configuration_schema = json.loads(configuration_schema_file.read())
+
+                with open(os.path.normpath(os.path.join(base_path, "./candidate_schema.json"))) as candidate_schema_file:
+                    self._candidate_schema = json.loads(candidate_schema_file.read())
+
+                with open(os.path.normpath(os.path.join(base_path, "./ballot_schema.json"))) as ballot_schema_file:
+                    self._ballot_schema = json.loads(ballot_schema_file.read())
+            except Exception:
+                self.logger.warning("Unable to setup validation schemas, skipping validation.")
+
         self.logger.info("Parsing configuration file at `%s`. (SHA-512 Hash: `%s`)", configuration_file_path, hashlib.sha512(open(configuration_file_path, "rb").read()).hexdigest())
         with open(configuration_file_path, encoding="utf-8") as configuration_file:
             self._configuration = json.loads(configuration_file.read())
+            if self._configuration_schema:
+                try:
+                    jsonschema.validate(self._configuration, self._configuration_schema)
+                except jsonschema.exceptions.ValidationError:
+                    self.logger.error("Configuration error, provided configuration file does not conform to configuration specifications.")
+                    raise ElectionError("Configuration error, provided configuration file does not conform to configuration specifications.")
             configuration = self._configuration
 
         # Parse the configuration data.
@@ -55,6 +81,12 @@ class Election:
     def load_candidates(self, candidate_file_path):
         self.logger.info("Parsing candidate file at `%s`. (SHA-512 Hash: `%s`)", candidate_file_path, hashlib.sha512(open(candidate_file_path, "rb").read()).hexdigest())
         candidate_data = self.candidate_parser.parse(candidate_file_path, self._races)
+        if self._candidate_schema:
+            try:
+                jsonschema.validate(candidate_data, self._candidate_schema)
+            except jsonschema.exceptions.ValidationError:
+                self.logger.error("Candidate parsing error, provided candidate data does not conform to candidate data specifications.")
+                raise ElectionError("Candidate parsing error, provided candidate data does not conform to candidate data specifications.")
         self.logger.info("Parsing %d races in candidate file.", len(candidate_data))
         for race in candidate_data:
             target_race = self._race_id[race]
@@ -74,6 +106,12 @@ class Election:
             progress_dialog.Fit()
         self.logger.info("Parsing ballot file at `%s`. (SHA-512 Hash: `%s`)", ballot_file_path, hashlib.sha512(open(ballot_file_path, "rb").read()).hexdigest())
         ballot_data = self.ballot_parser.parse(ballot_file_path, self._races)
+        if self._ballot_schema:
+            try:
+                jsonschema.validate(ballot_data, self._ballot_schema)
+            except jsonschema.exceptions.ValidationError:
+                self.logger.error("Ballot parsing error, provided ballot data does not conform to ballot data specifications.")
+                raise ElectionError("Ballot parsing error, provided ballot data does not conform to ballot data specifications.")
         ballot_count = len(ballot_data)
         if progress_dialog:
             if ballot_count > 0:
