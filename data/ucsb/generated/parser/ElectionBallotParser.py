@@ -106,12 +106,11 @@ def parse(ballot_file_path, races):
                         if ballot_file_data[1][column].strip() == "Write-In":
                             race_order = int(ballot_file_data[row][column])
                             candidate_id = ballot_file_data[row][column + 1].strip()
-                            if candidate_id:
-                                candidate = race.get_candidate(candidate_id)
-                                if candidate:
-                                    race_preferences[race_order] = candidate.id()
-                                else:
-                                    race_preferences[race_order] = invalid_writein
+                            candidate = race.get_candidate(candidate_id)
+                            if candidate:
+                                race_preferences[race_order] = candidate.id()
+                            else:
+                                race_preferences[race_order] = invalid_writein
                         else:
                             race_order = int(ballot_file_data[row][column])
                             race_preferences[race_order] = race.get_candidate(ballot_file_data[1][column].strip()).id()
