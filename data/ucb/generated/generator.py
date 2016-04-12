@@ -55,5 +55,5 @@ def main():
         json.dump(return_ballot_data, ballots_out)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
