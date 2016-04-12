@@ -1,6 +1,4 @@
 import logging
-import os
-
 import wx
 
 from interfaces.gui.WindowNew import WindowNew
