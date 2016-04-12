@@ -67,7 +67,7 @@ def parse(ballot_file_path, races):
         ballot_file_data = json.loads(ballot_file.read())
         for ballot in ballot_file_data["ballots"]:
             ballot_data = {}
-            ballot_data["ballot_id"] = uuid.uuid4()
+            ballot_data["ballot_id"] = str(uuid.uuid4())
             ballot_data["ballot_data"] = {}
 
             for race in races:
