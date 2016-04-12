@@ -32,6 +32,5 @@
 	"items": {
 		"type": "object",
 		"$ref": "#/definitions/ballot"
-	},
-	"minItems": 1
+	}
 }
