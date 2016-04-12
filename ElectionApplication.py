@@ -2,6 +2,7 @@ import sys
 import argparse
 import os
 import logging
+import logging.handlers
 import interfaces.gui
 
 
@@ -17,7 +18,7 @@ def main(argv=None):
     parser_group_election.add_argument("--candidates", help="Election candidates file.", dest="candidate_file")
     parser_group_election.add_argument("--ballots", help="Election ballots file.", dest="ballot_file")
     parser_group_logging = parser.add_argument_group("Logging")
-    parser_group_logging.add_argument("-l", "--log", help="Enable/disable logging for the application.", action="store_true", dest="log_enabled")
+    parser_group_logging.add_argument("--no-log", help="Disable logging for the application.", action="store_false", default=True, dest="log_enabled")
     parser_group_logging.add_argument("-ll", "--log-level", help="Level of logging.", default="DEBUG", dest="log_level")
     parser_group_logging.add_argument("-ld", "--log-destination", help="Set the log output directory.", default="./logs/", dest="log_destination")
 
@@ -28,6 +29,10 @@ def main(argv=None):
         os.makedirs(parsed_arguments.log_destination)
 
     # Setup logging in the application.
+    if not parsed_arguments.log_enabled:
+        # Disable logging by preventing logging of all levels of errors.
+        logging.disable(logging.CRITICAL)
+
     logger = logging.getLogger("election")
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(process)d: %(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -36,7 +41,9 @@ def main(argv=None):
     file_handler.setLevel(parsed_arguments.log_level)
     file_handler.setFormatter(formatter)
 
-    logger.addHandler(file_handler)
+    memory_handler = logging.handlers.MemoryHandler(1024 * 100, target=file_handler)
+
+    logger.addHandler(memory_handler)
 
     if parsed_arguments.headless:
         # Not implemented

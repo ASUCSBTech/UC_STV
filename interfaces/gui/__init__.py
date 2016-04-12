@@ -16,6 +16,7 @@ def run(parsed_arguments):
 
     # Setup logging in the application.
     logger = logging.getLogger("ui")
+    logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(process)d: %(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     file_handler = logging.FileHandler(filename=log_destination + "/ui.log")
