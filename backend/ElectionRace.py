@@ -56,9 +56,11 @@ class ElectionRace:
 
     def droop_quota(self):
         if self._max_winners > 1:
-            return int((float(len(self._voters)) / (self._max_winners + 1)) + 1)
+            return_value =  int((float(len(self._voters)) / (self._max_winners + 1)) + 1)
         elif self._max_winners == 1:
-            return int(float(len(self._voters) + 1) / 2)
+            return_value = int(float(len(self._voters) + 1) / 2)
+
+        return return_value if return_value > 0 else 1
 
     def add_voter(self, voter):
         if self._state is not self.ADDING:
@@ -264,6 +266,12 @@ class ElectionRace:
         # Check if there are any remaining candidates that are still running.
         if len(running_candidates) == 0:
             self.logger.info("(Race: %s) Race has completed, no candidates remaining in race. (Total Rounds: %d)", self, len(self._rounds))
+            self._state = self.COMPLETE
+
+        # Check a special condition of no voters being in this race.
+        if len(self._voters) == 0:
+            current_round.complete()
+            self.logger.info("(Race: %s) Race has completed, no votes were cast in the race.", self)
             self._state = self.COMPLETE
 
         # Calculate the maximum number of winners that can be taken this round.
