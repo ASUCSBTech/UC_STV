@@ -400,13 +400,14 @@ class ElectionRace:
                 break
 
         # Find the lowest candidates with lowest candidate score.
-        for candidate in running_candidates:
-            if current_round_scores[candidate] < current_round_scores[lowest_candidates[0]]:
-                lowest_candidates = [candidate]
-            elif current_round_scores[candidate] == current_round_scores[lowest_candidates[0]] and candidate not in lowest_candidates:
-                lowest_candidates.append(candidate)
+        if len(lowest_candidates) > 0:
+            for candidate in running_candidates:
+                if current_round_scores[candidate] < current_round_scores[lowest_candidates[0]]:
+                    lowest_candidates = [candidate]
+                elif current_round_scores[candidate] == current_round_scores[lowest_candidates[0]] and candidate not in lowest_candidates:
+                    lowest_candidates.append(candidate)
 
-        eliminated_candidates.extend(lowest_candidates)
+            eliminated_candidates.extend(lowest_candidates)
 
         # Eliminate candidates.
         for candidate in eliminated_candidates:
