@@ -102,6 +102,9 @@ class ElectionRace:
 
     @staticmethod
     def get_data_table(election_round):
+        def round_down(value, places):
+            return math.floor(value * (10 ** places)) / float(10 ** places)
+
         _candidate_states = {
             ElectionCandidateState.WON: "WON",
             ElectionCandidateState.RUNNING: "RUNNING",
@@ -109,22 +112,20 @@ class ElectionRace:
         }
 
         table_data = []
+        droop_quota = election_round.parent().droop_quota()
+        score_resolution = 4
+        previous_round = election_round.parent().get_round_previous(election_round)
+        previous_round_candidates_changed = []
+        if previous_round:
+            previous_round_candidates_changed = previous_round.get_candidates_changed()
 
-        def round_down(value, places):
-            return math.floor(value * (10 ** places)) / float(10 ** places)
-
+        candidate_scores = election_round.get_candidates_score()
         if election_round.state() is ElectionRaceRound.INCOMPLETE:
             candidate_states = election_round.get_candidates_state(ElectionRaceRound.CANDIDATE_PRE_STATE)
             candidate_state_groups = election_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_PRE_STATE)
         else:
             candidate_states = election_round.get_candidates_state(ElectionRaceRound.CANDIDATE_POST_STATE)
             candidate_state_groups = election_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_POST_STATE)
-
-        candidate_scores = election_round.get_candidates_score()
-
-        droop_quota = election_round.parent().droop_quota()
-
-        score_resolution = 4
 
         table_group_won = sorted(candidate_state_groups[ElectionCandidateState.WON], key=lambda sort_candidate: (-1 * (election_round.round() - candidate_states[sort_candidate].round().round()), -1 * (candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), sort_candidate.party(), sort_candidate.name()))
         for _candidate in table_group_won:
@@ -151,10 +152,13 @@ class ElectionRace:
         table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED], key=lambda sort_candidate: (-1 * (candidate_states[sort_candidate].round().round()), -1 * (candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), sort_candidate.party(), sort_candidate.name()))
         for _candidate in table_group_eliminated:
             _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
+            _candidate_state = _candidate_states[ElectionCandidateState.ELIMINATED]
+            if _candidate in previous_round_candidates_changed:
+                _candidate_state = "TRANSFERRED" if election_round.state() is ElectionRaceRound.COMPLETE else "TRANSFERRING"
             table_data.append([
                 _candidate.name(),
                 _candidate.party(),
-                _candidate_states[ElectionCandidateState.ELIMINATED],
+                _candidate_state,
                 "0 (" + str(round_down(_candidate_score, score_resolution)) + ")",
                 "0"
             ])

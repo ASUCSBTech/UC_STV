@@ -64,7 +64,7 @@ class PanelRaceTable(wx.Panel):
         self.grid.GetTable().set_table_data(table_data)
         if update_layout:
             self.grid.AutoSizeColumns(setAsMin=False)
-            self.grid.SetColSize(2, 90)
+            self.grid.SetColSize(2, 110)
             self.grid.SetColSize(3, 110)
             self.on_size(None)
         self.grid.ForceRefresh()
