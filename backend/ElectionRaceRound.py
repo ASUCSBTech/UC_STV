@@ -175,12 +175,7 @@ class ElectionRaceRound:
 
     # Gets candidate that have had their state changed.
     def get_candidates_changed(self):
-        candidates = []
-
-        for candidate in self._candidate_post_state:
-            candidates.append(candidate)
-
-        return candidates
+        return list(self._candidate_post_state.keys())
 
     def get_candidate_score(self, candidate):
         if candidate is not None and candidate not in self._candidates:
