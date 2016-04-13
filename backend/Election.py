@@ -49,9 +49,9 @@ class Election:
             if self._configuration_schema:
                 try:
                     jsonschema.validate(self._configuration, self._configuration_schema)
-                except jsonschema.exceptions.ValidationError:
+                except jsonschema.exceptions.ValidationError as e:
                     self.logger.error("Configuration error, provided configuration file does not conform to configuration specifications.")
-                    raise ElectionError("Configuration error, provided configuration file does not conform to configuration specifications.")
+                    raise ElectionError("Configuration error, provided configuration file does not conform to configuration specifications.") from e
             configuration = self._configuration
 
         # Parse the configuration data.
@@ -60,9 +60,9 @@ class Election:
                 new_race = ElectionRace(race["race_id"], race["race_position"], int(race["race_max_winners"]), race["race_extended_data"])
                 self._races.append(new_race)
                 self._race_id[new_race.id()] = new_race
-            except ValueError:
+            except ValueError as e:
                 self.logger.error("Unable to parse max winners of %s.", race["race_position"], exc_info=sys.exc_info())
-                raise ElectionError("Configuration error, unable to parse max winners of %s." % race["race_position"])
+                raise ElectionError("Configuration error, unable to parse max winners of %s." % race["race_position"]) from e
 
         self.logger.info("Loaded %d races in configuration.", len(self._races))
 
