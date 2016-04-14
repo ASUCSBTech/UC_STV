@@ -43,6 +43,8 @@ class WindowNew(wx.Dialog):
         self.show_ui()
         self.Centre()
 
+        self.logger.info("New election user interface displayed.")
+
     def show_ui(self):
         self.label_configuration_file = wx.StaticText(self, wx.ID_ANY, "Configuration File")
         self.text_ctrl_configuration_file = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_READONLY)
