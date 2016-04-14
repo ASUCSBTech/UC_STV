@@ -55,6 +55,7 @@ class ElectionRace:
         return self._max_winners
 
     def droop_quota(self):
+        return_value = 0
         if self._max_winners > 1:
             return_value = int((float(len(self._voters)) / (self._max_winners + 1)) + 1)
         elif self._max_winners == 1:
