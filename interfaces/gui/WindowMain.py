@@ -335,9 +335,7 @@ class WindowMain(wx.Frame):
         self.ui_update_statusbar(event.race_state, event.round_state)
 
     def tabulation_on_complete(self, event):
-        self._current_round = self._current_round.parent().get_round_latest()
-        self.grid_display.update(ElectionRace.get_data_table(self._current_round))
-        self.ui_update_statusbar(self._current_round.parent().state(), self._current_round.state())
+        self.change_round(self._current_round.parent().get_round_latest())
         self.ui_update_rounds()
         self.ui_complete_action_done()
 
