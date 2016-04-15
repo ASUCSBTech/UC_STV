@@ -148,8 +148,8 @@ class ElectionRace:
         for _candidate in table_group_eliminated:
             _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
             _candidate_state = "ELIMINATED"
-            if _candidate in previous_round_candidates_changed:
-                _candidate_state = "TRANSFERRED" if election_round.state() is ElectionRaceRound.COMPLETE else "TRANSFERRING"
+            if election_round.state() is not ElectionRaceRound.COMPLETE and _candidate in previous_round_candidates_changed:
+                _candidate_state = "TRANSFERRING"
             table_data.append([
                 _candidate.name(),
                 _candidate.party(),
