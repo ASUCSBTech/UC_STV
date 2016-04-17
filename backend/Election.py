@@ -28,6 +28,8 @@ class Election:
 
         self.logger = logging.getLogger("election")
 
+        configuration = None
+
         # Load validation schemas, if this process fails, log it and then continue.
         base_path = os.path.normpath(os.path.join(os.path.join(os.path.dirname(__file__)), "../schemas/"))
         if os.path.isdir(base_path):
