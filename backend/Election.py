@@ -116,8 +116,6 @@ class Election:
                 raise ElectionError("Ballot parsing error, provided ballot data does not conform to ballot data specifications.")
         ballot_count = len(ballot_data)
         if progress_dialog:
-            if ballot_count > 0:
-                progress_dialog.SetRange(ballot_count)
             progress_dialog.Update(0, "Adding %d voter(s) to election races." % ballot_count)
             progress_dialog.Fit()
         self.logger.info("Adding %d voters to election.", ballot_count)
@@ -141,8 +139,8 @@ class Election:
                     candidate_preferences.append(current_race.get_candidate(candidate_id))
                 voter.set_race_preferences(current_race, candidate_preferences)
 
-            if progress_dialog and ballot_number % 5 == 0 and progress_dialog.GetValue() + 5 < progress_dialog.GetRange():
-                progress_dialog.Update(progress_dialog.GetValue() + 5)
+            if progress_dialog and ballot_number % 5 == 0:
+                progress_dialog.Update(int((ballot_number / ballot_count) * 100))
 
     def get_race(self, race_id):
         if race_id not in self._race_id:

@@ -43,6 +43,9 @@ class WindowMain(wx.Frame):
         self.menu_help = None
         self.menu_help_about = None
 
+        # Window panel.
+        self.window_panel = None
+
         # Display select controls.
         self.panel_display_select = None
         self.label_race = None
@@ -116,7 +119,9 @@ class WindowMain(wx.Frame):
 
         self.SetMenuBar(self.menu)
 
-        self.panel_display_select = wx.Panel(self, wx.ID_ANY)
+        self.window_panel = wx.Panel(self, wx.ID_ANY)
+
+        self.panel_display_select = wx.Panel(self.window_panel, wx.ID_ANY)
         self.label_race = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Race")
         self.label_round = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Round")
         self.label_speed = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Display Speed")
@@ -127,10 +132,10 @@ class WindowMain(wx.Frame):
         self.slider_display_speed.SetValue(90)
         self.panel_display_select.Bind(wx.EVT_SLIDER, self.ui_slider_event)
 
-        self.panel_display_grid = wx.Panel(self, wx.ID_ANY)
+        self.panel_display_grid = wx.Panel(self.window_panel, wx.ID_ANY)
         self.grid_display = PanelRaceTable(self.panel_display_grid)
 
-        self.panel_display_control = wx.Panel(self, wx.ID_ANY)
+        self.panel_display_control = wx.Panel(self.window_panel, wx.ID_ANY)
         self.label_quota = wx.StaticText(self.panel_display_control, wx.ID_ANY, "")
         self.button_complete_round = wx.Button(self.panel_display_control, wx.ID_ANY, "Complete Round")
         self.panel_display_control.Bind(wx.EVT_BUTTON, self.ui_complete_round, self.button_complete_round)
@@ -174,13 +179,11 @@ class WindowMain(wx.Frame):
         self.sizer_display_control.Add((20, 1), 0, wx.EXPAND, 0)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer)
+        self.window_panel.SetSizer(self.sizer)
 
-        self.sizer.Add((1, 10), 0, 0, 0)
-        self.sizer.Add(self.panel_display_select, 0, wx.EXPAND, 0)
+        self.sizer.Add(self.panel_display_select, 0, wx.EXPAND | wx.TOP, 10)
         self.sizer.Add(self.panel_display_grid, 1, wx.EXPAND, 0)
-        self.sizer.Add(self.panel_display_control, 0, wx.EXPAND, 0)
-        self.sizer.Add((1, 5), 0, 0, 0)
+        self.sizer.Add(self.panel_display_control, 0, wx.EXPAND | wx.BOTTOM, 5)
         self.sizer.SetSizeHints(self)
 
         self.SetSize((750, 500))
