@@ -12,8 +12,7 @@ def main(argv=None):
         argv = sys.argv[1:]
 
     parser = argparse.ArgumentParser(description="UCSB AS Elections Tabulator")
-    # Headless mode is not implemented.
-    # parser.add_argument("--headless", help="Headless mode (no GUI).", action="store_true", dest="headless")
+    parser.add_argument("--interface", help="interface mode", dest="interface", choices=["gui"], default="gui")
     parser_group_election = parser.add_argument_group("election configuration")
     parser_group_election.add_argument("--config", help="election configuration file", dest="config_file")
     parser_group_election.add_argument("--candidates", help="election candidates file", dest="candidate_file")
@@ -26,6 +25,7 @@ def main(argv=None):
     parsed_arguments = parser.parse_args(argv)
 
     parsed_arguments.log_destination = os.path.normpath(os.path.join(os.path.join(os.path.dirname(__file__)), parsed_arguments.log_destination))
+    # Create the path for logs if it doesn't already exist.
     if not os.path.exists(parsed_arguments.log_destination):
         os.makedirs(parsed_arguments.log_destination)
 
@@ -42,16 +42,13 @@ def main(argv=None):
     file_handler.setLevel(parsed_arguments.log_level)
     file_handler.setFormatter(formatter)
 
+    # Use a memory handler to prevent excessive I/O bound events.
     memory_handler = logging.handlers.MemoryHandler(1024 * 100, target=file_handler)
 
     logger.addHandler(memory_handler)
 
-    # Headless mode is not implemented.
-    # if parsed_arguments.headless:
-    #     print("Headless mode is currently not implemented.")
-    # elif not parsed_arguments.headless:
-    #     interfaces.gui.run(parsed_arguments)
-    interfaces.gui.run(parsed_arguments)
+    if parsed_arguments.interface == "gui":
+        interfaces.gui.run(parsed_arguments)
 
 if __name__ == "__main__":
     sys.exit(main())
