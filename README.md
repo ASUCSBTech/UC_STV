@@ -3,9 +3,12 @@ Written by Ryan Tse \<tse@umail.ucsb.edu\>.
 
 A Python-based elections tabulator utilizing a single transferable vote system with support for custom election configurations and dynamic ballot format parsing.
 
+## Screenshot
+<img align="center" src="https://cloud.githubusercontent.com/assets/12377481/14589208/0bc4ae68-0491-11e6-89cc-4e80bef73a9e.png" alt="UCSB AS Elections Tabulator Screenshot">
+
 ## Installation
 Prerequisites:
-- Python 3.X
+- Python 3.3.0+
 - pip
 
 Installation:
