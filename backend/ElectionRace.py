@@ -57,9 +57,9 @@ class ElectionRace:
     def droop_quota(self):
         return_value = 0
         if self._max_winners > 1:
-            return_value = int((float(len(self._voters)) / (self._max_winners + 1)) + 1)
+            return_value = int((len(self._voters) / (self._max_winners + 1)) + 1)
         elif self._max_winners == 1:
-            return_value = int(float(len(self._voters) + 1) / 2)
+            return_value = int((len(self._voters) + 1) / 2)
 
         return return_value if return_value > 0 else 1
 
@@ -104,7 +104,7 @@ class ElectionRace:
     @staticmethod
     def get_data_table(election_round):
         def round_down(value, places):
-            return math.floor(value * (10 ** places)) / float(10 ** places)
+            return math.floor(value * (10 ** places)) / (10 ** places)
 
         table_data = []
         droop_quota = election_round.parent().droop_quota()
