@@ -19,7 +19,7 @@ def run(parsed_arguments):
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(process)d: %(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-    file_handler = logging.FileHandler(filename=log_destination + "/ui.log")
+    file_handler = logging.FileHandler(filename=log_destination + "/ui.log", encoding="utf-8")
     file_handler.setLevel(log_level)
     file_handler.setFormatter(formatter)
 

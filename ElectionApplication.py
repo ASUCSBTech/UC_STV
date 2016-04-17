@@ -38,7 +38,7 @@ def main(argv=None):
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(process)d: %(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-    file_handler = logging.FileHandler(filename=parsed_arguments.log_destination + "/event.log")
+    file_handler = logging.FileHandler(filename=parsed_arguments.log_destination + "/event.log", encoding="utf-8")
     file_handler.setLevel(parsed_arguments.log_level)
     file_handler.setFormatter(formatter)
 
