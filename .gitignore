@@ -1,5 +1,6 @@
 .idea
 *.pyc
 *.log
-data-berkeley-generated/ballots.json
-data-berkeley-generated/candidates.json
+data/ucb/generated/ballots.json
+data/ucb/generated/candidates.json
+data/ucsb/generated/ballot_data.csv

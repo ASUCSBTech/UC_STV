@@ -1,0 +1,102 @@
+{
+  "general": {
+    "default_speed": 90,
+    "parser_directory": "./parser/",
+    "candidate_parser": "ElectionCandidateParser",
+    "ballot_parser": "ElectionBallotParser"
+  },
+  "races": [
+    {
+      "race_id": "race_president",
+      "race_position": "President",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "A.S. President"
+      }
+    },
+    {
+      "race_id": "race_ivp",
+      "race_position": "Internal VP",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "A.S. Internal VP"
+      }
+    },
+    {
+      "race_id": "race_evpla",
+      "race_position": "External VP Local Affairs",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "A.S. External VP - Local"
+      }
+    },
+    {
+      "race_id": "race_evpsa",
+      "race_position": "External VP Statewide Affairs",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "A.S. External VP - Statewide"
+      }
+    },
+    {
+      "race_id": "race_sa",
+      "race_position": "Student Advocate",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "A.S. Student Advocate General",
+        "parser_writein_fields": 1,
+        "parser_writein_whitelist": ["Batman"]
+      }
+    },
+    {
+      "race_id": "race_oncs",
+      "race_position": "On-Campus Senator",
+      "race_max_winners": 5,
+      "race_extended_data": {
+        "parser_group": "A.S. On-Campus Senator",
+        "parser_writein_fields": 1,
+        "parser_writein_whitelist": ["Superman"]
+      }
+    },
+    {
+      "race_id": "race_offcs",
+      "race_position": "Off-Campus Senator",
+      "race_max_winners": 13,
+      "race_extended_data": {
+        "parser_group": "A.S. Off Campus Senator"
+      }
+    },
+    {
+      "race_id": "race_ocuos",
+      "race_position": "Off-Campus University Owned Senator",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "A.S. University Owned Off Campus"
+      }
+    },
+    {
+      "race_id": "race_csls",
+      "race_position": "Collegiate Senator - Letters & Science",
+      "race_max_winners": 4,
+      "race_extended_data": {
+        "parser_group": "Collegiate Senator - Letters"
+      }
+    },
+    {
+      "race_id": "race_cscs",
+      "race_position": "Collegiate Senator - Creative Studies",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "Collegiate Senator - CCS"
+      }
+    },
+    {
+      "race_id": "race_cse",
+      "race_position": "Collegiate Senator - Engineering",
+      "race_max_winners": 1,
+      "race_extended_data": {
+        "parser_group": "Collegiate Senator - Engineering"
+      }
+    }
+  ]
+}
