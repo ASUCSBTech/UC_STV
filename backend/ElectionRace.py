@@ -174,11 +174,7 @@ class ElectionRace:
                 _new_round.add_candidate(_candidate, current_round.get_candidate_state(_candidate))
 
             # Add ballots for candidates that have NOT changed.
-            for _candidate in self._candidates:
-                # Candidate changed, ignore ballots.
-                if _candidate in current_round_changed:
-                    continue
-
+            for _candidate in list(set(self._candidates) - set(current_round_changed)):
                 transferable_ballots = current_round.get_candidate_ballots(_candidate)
                 self.logger.info("(Race: %s, Round: %s) Transferring %d reusable ballots from candidate `%s` to new round. (New Round: %s)", self, current_round, len(transferable_ballots), _candidate, _new_round)
                 for _ballot in transferable_ballots:
