@@ -31,30 +31,48 @@ class ElectionRace:
         self._candidate_id = {}
 
     def id(self):
+        """Return the ID of the election race."""
         return str(self._id)
 
     def position(self):
+        """Return the position of the election race. (i.e. 'President')"""
         return str(self._position)
 
     def extended_data(self):
+        """Return any extended data present from the election configuration file."""
         return self._extended_data
 
     def candidates(self):
+        """Return the list of candidates in this election race."""
         return self._candidates
 
     def winners(self):
+        """Return the list of winners in the race."""
         return self._winners
 
     def state(self):
+        """Return the current state of the race."""
         return self._state
 
     def rounds(self):
+        """Return the ElectionRaceRounds that are associated with the race."""
         return self._rounds
 
     def max_winners(self):
+        """Return the maximum number of winners in the election race."""
         return self._max_winners
 
     def droop_quota(self):
+        """Return the droop quota for the election race.
+
+        This value returned will always be an integer value and is calculated
+        based upon the number of voters and the maximum number of winners.
+
+        - If the number of winners is greater than one, then the droop quota is
+        calculated as: (# of voters)/(max. # of winners + 1) + 1.
+        - If the number of winners is just one, then the droop quota is calculated
+        as: (# of voters + 1)/2.
+        """
         return_value = 0
         if self._max_winners > 1:
             return_value = int((len(self._voters) / (self._max_winners + 1)) + 1)
@@ -64,6 +82,11 @@ class ElectionRace:
         return return_value if return_value > 0 else 1
 
     def add_voter(self, voter):
+        """Adds a voter to the race.
+
+        Voters cannot be added once the race has begun tabulating. Voters
+        that have already been added to the race are silently ignored.
+        """
         if self._state is not self.ADDING:
             raise ElectionRaceError("(Race: %s) Election voter adding phase has completed." % self)
 
@@ -74,6 +97,11 @@ class ElectionRace:
         self._voters.append(voter)
 
     def add_candidate(self, candidate):
+        """Adds a candidate to the race.
+
+        Candidates cannot be added once the race has begun tabulating. Candidates
+        that are already added cannot be added again and will raise an exception.
+        """
         if self._state is not self.ADDING:
             raise ElectionRaceError("(Race: %s) Election candidate adding phase has completed." % self)
 
@@ -84,18 +112,23 @@ class ElectionRace:
         self._candidates.append(candidate)
 
     def get_candidate(self, candidate_id):
+        """Returns the corresponding ElectionCandidate based upon their string
+        representation of the candidate ID.
+        """
         if candidate_id not in self._candidate_id:
             return None
 
         return self._candidate_id[candidate_id]
 
     def get_round_latest(self):
+        """Returns the latest round of the ElectionRace or NoneType if there are no rounds."""
         if not self._rounds:
             return None
 
         return self._rounds[-1]
 
     def get_round_previous(self, election_round):
+        """Returns the previous round relative to the ElectionRaceRound given."""
         current_round_index = self._rounds.index(election_round)
         if current_round_index == 0:
             return None
@@ -103,6 +136,16 @@ class ElectionRace:
 
     @staticmethod
     def get_data_table(election_round):
+        """Returns a table of the data represented by the given ElectionRaceRound. The returned
+        data does not include any headers.
+
+        The returned table contains the following values:
+        - Candidate Name
+        - Candidate Party
+        - Candidate State
+        - Candidate Score
+        - Droop Quota Percentage
+        """
         def round_down(value, places):
             return math.floor(value * (10 ** places)) / (10 ** places)
 
@@ -122,6 +165,11 @@ class ElectionRace:
             candidate_states = election_round.get_candidates_state(ElectionRaceRound.CANDIDATE_POST_STATE)
             candidate_state_groups = election_round.get_candidates_by_state(ElectionRaceRound.CANDIDATE_POST_STATE)
 
+        # Winning candidates are sorted in the following order:
+        #   1. The round that the candidate won in.
+        #   2. The score of the candidate when the candidate won.
+        #   3. The party of the candidate.
+        #   4. The name of the candidate.
         table_group_won = sorted(candidate_state_groups[ElectionCandidateState.WON], key=lambda sort_candidate: (-1 * (election_round.round() - candidate_states[sort_candidate].round().round()), -1 * (candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), sort_candidate.party(), sort_candidate.name()))
         for _candidate in table_group_won:
             _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
@@ -133,6 +181,10 @@ class ElectionRace:
                 str(_candidate_score / droop_quota)
             ])
 
+        # Running candidates are sorted in the following order:
+        #   1. The current score of the candidate.
+        #   2. The party of the candidate.
+        #   3. The name of the candidate.
         table_group_running = sorted(candidate_state_groups[ElectionCandidateState.RUNNING], key=lambda sort_candidate: (-1 * candidate_scores[sort_candidate], sort_candidate.party(), sort_candidate.name()))
         for _candidate in table_group_running:
             _candidate_score = candidate_scores[_candidate]
@@ -144,6 +196,11 @@ class ElectionRace:
                 str(_candidate_score / droop_quota)
             ])
 
+        # Eliminated candidates are sorted in the following order:
+        #   1. The round that the candidate was eliminated in.
+        #   2. The score of the candidate when the candidate was eliminated.
+        #   3. The party of the candidate.
+        #   4. The name of the candidate.
         table_group_eliminated = sorted(candidate_state_groups[ElectionCandidateState.ELIMINATED], key=lambda sort_candidate: (-1 * (candidate_states[sort_candidate].round().round()), -1 * (candidate_states[sort_candidate].round().get_candidate_score(sort_candidate)), sort_candidate.party(), sort_candidate.name()))
         for _candidate in table_group_eliminated:
             _candidate_score = candidate_states[_candidate].round().get_candidate_score(_candidate)
@@ -161,6 +218,7 @@ class ElectionRace:
         return table_data
 
     def run(self):
+        """Runs a single step of the race."""
         # Reusable run components.
         def create_new_round():
             # Get candidates that changed states in this round.
