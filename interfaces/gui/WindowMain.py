@@ -196,10 +196,8 @@ class WindowMain(wx.Frame):
         combo_box_text = []
 
         election_races = self.election.get_race_all()
-        if "display_order" in election_races[0].extended_data():
-            election_races.sort(key=lambda election_race: election_race.extended_data()["display_order"])
-        else:
-            election_races.sort(key=lambda election_race: election_race.position())
+        election_race_count = len(election_races)
+        election_races.sort(key=lambda election_race: (election_race_count+1 if "display_order" not in election_race.extended_data() else election_race.extended_data()["display_order"], election_race.position()))
 
         for race in election_races:
             # Add the race to possible races.
