@@ -312,7 +312,7 @@ class WindowMain(wx.Frame):
         if election_round is not self._current_round:
             self.logger.info("Changed display to round `%s` of race `%s`.", election_round, election_round.parent())
         self._current_round = election_round
-        self.grid_display.update(ElectionRace.get_data_table(election_round))
+        self.grid_display.update(ElectionRace.get_data_table(election_round), update_layout=True)
         self.ui_update_statusbar(election_round.parent().state(), election_round.state())
 
     def complete_current_race(self):

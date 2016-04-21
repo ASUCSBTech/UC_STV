@@ -18,7 +18,6 @@ class PanelRaceTable(wx.Panel):
         self.grid.EnableEditing(False)
         self.grid.DisableCellEditControl()
         self.grid.DisableDragColMove()
-        self.grid.DisableDragColSize()
         self.grid.DisableDragGridSize()
         self.grid.DisableDragRowSize()
 
@@ -67,10 +66,13 @@ class PanelRaceTable(wx.Panel):
             self.Layout()
 
     def update(self, table_data, update_layout=True):
-        self.grid.GetTable().set_table_data(table_data)
+        grid_table = self.grid.GetTable()
+        grid_table.set_table_data(table_data)
         if update_layout:
             self.grid.AutoSizeColumns(setAsMin=False)
-            self.on_size(None)
+        self.grid.AutoSizeColumn(grid_table.ColumnsFindString("Status"), setAsMin=False)
+        self.grid.AutoSizeColumn(grid_table.ColumnsFindString("Score"), setAsMin=False)
+        self.on_size(None)
         self.grid.ForceRefresh()
 
     class RaceGridData(wx.grid.GridTableBase):
