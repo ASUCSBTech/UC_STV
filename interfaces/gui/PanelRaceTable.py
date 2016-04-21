@@ -6,6 +6,12 @@ class PanelRaceTable(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
+        # Set font size.
+        if wx.SystemOptions.HasOption("font-size"):
+            font = self.GetFont()
+            font.SetPointSize(wx.SystemOptions.GetOptionInt("font-size"))
+            self.SetFont(font)
+
         self.grid = wx.grid.Grid(self, wx.ID_ANY)
         self.grid.SetTable(PanelRaceTable.RaceGridData(), True)
         self.grid.AutoSize()
@@ -64,8 +70,6 @@ class PanelRaceTable(wx.Panel):
         self.grid.GetTable().set_table_data(table_data)
         if update_layout:
             self.grid.AutoSizeColumns(setAsMin=False)
-            self.grid.SetColSize(2, 110)
-            self.grid.SetColSize(3, 110)
             self.on_size(None)
         self.grid.ForceRefresh()
 

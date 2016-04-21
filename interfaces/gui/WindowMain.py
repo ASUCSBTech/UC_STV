@@ -137,6 +137,12 @@ class WindowMain(wx.Frame):
 
         self.panel_display_control = wx.Panel(self.window_panel, wx.ID_ANY)
         self.label_quota = wx.StaticText(self.panel_display_control, wx.ID_ANY, "")
+        # Allow override of font size in label.
+        if wx.SystemOptions.HasOption("font-size"):
+            font = self.label_quota.GetFont()
+            font.SetPointSize(wx.SystemOptions.GetOptionInt("font-size"))
+            self.label_quota.SetFont(font)
+
         self.button_complete_round = wx.Button(self.panel_display_control, wx.ID_ANY, "Complete Round")
         self.panel_display_control.Bind(wx.EVT_BUTTON, self.ui_complete_round, self.button_complete_round)
         self.button_complete_race = wx.Button(self.panel_display_control, wx.ID_ANY, "Complete Race")
@@ -332,7 +338,7 @@ class WindowMain(wx.Frame):
         self.Bind(EVT_TABULATION_COMPLETE, self.tabulation_on_complete)
 
     def tabulation_on_progress(self, event):
-        self.grid_display.update(event.table_data, update_layout=False)
+        self.grid_display.update(event.table_data)
         self.ui_update_statusbar(event.race_state, event.round_state)
 
     def tabulation_on_complete(self, event):

@@ -13,6 +13,7 @@ def main(argv=None):
 
     parser = argparse.ArgumentParser(description="UCSB AS Elections Tabulator")
     parser.add_argument("--interface", help="interface mode", dest="interface", choices=["gui"], default="gui")
+    parser.add_argument("--interface-options", help="interface options", dest="interface_options", default="")
     parser_group_election = parser.add_argument_group("election configuration")
     parser_group_election.add_argument("--config", help="election configuration file", dest="config_file")
     parser_group_election.add_argument("--candidates", help="election candidates file", dest="candidate_file")

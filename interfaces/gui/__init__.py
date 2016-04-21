@@ -1,4 +1,6 @@
 import logging
+import argparse
+import shlex
 import wx
 
 from interfaces.gui.WindowNew import WindowNew
@@ -13,6 +15,14 @@ class ElectionGUIApplication(wx.App):
 def run(parsed_arguments):
     log_destination = parsed_arguments.log_destination
     log_level = parsed_arguments.log_level
+
+    parser = argparse.ArgumentParser(description="UCSB AS Elections Tabulator - Interface Options")
+    parser.add_argument("--font-size", help="GUI font size.", dest="font_size", default=0, type=int)
+
+    gui_arguments = parser.parse_args(shlex.split(parsed_arguments.interface_options))
+
+    if gui_arguments.font_size >= 0:
+        wx.SystemOptions.SetOption("font-size", gui_arguments.font_size)
 
     # Setup logging in the application.
     logger = logging.getLogger("ui")
