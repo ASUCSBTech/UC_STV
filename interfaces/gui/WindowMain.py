@@ -312,7 +312,7 @@ class WindowMain(wx.Frame):
         if election_round is not self._current_round:
             self.logger.info("Changed display to round `%s` of race `%s`.", election_round, election_round.parent())
         self._current_round = election_round
-        self.grid_display.update(ElectionRace.get_data_table(election_round), update_layout=True)
+        self.grid_display.update(ElectionRace.get_data_table(election_round))
         self.ui_update_statusbar(election_round.parent().state(), election_round.state())
 
     def complete_current_race(self):
@@ -338,7 +338,7 @@ class WindowMain(wx.Frame):
         self.Bind(EVT_TABULATION_COMPLETE, self.tabulation_on_complete)
 
     def tabulation_on_progress(self, event):
-        self.grid_display.update(event.table_data)
+        self.grid_display.update(event.table_data, update_layout=False)
         self.ui_update_statusbar(event.race_state, event.round_state)
 
     def tabulation_on_complete(self, event):

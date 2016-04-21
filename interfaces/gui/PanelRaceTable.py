@@ -70,9 +70,11 @@ class PanelRaceTable(wx.Panel):
         grid_table.set_table_data(table_data)
         if update_layout:
             self.grid.AutoSizeColumns(setAsMin=False)
-        self.grid.AutoSizeColumn(grid_table.ColumnsFindString("Status"), setAsMin=False)
-        self.grid.AutoSizeColumn(grid_table.ColumnsFindString("Score"), setAsMin=False)
-        self.on_size(None)
+            dc = wx.MemoryDC()
+            dc.SetFont(self.GetFont())
+            self.grid.SetColSize(grid_table.ColumnsFindString("Status"), dc.GetTextExtent("TRANSFERRING")[0] + 5)
+            self.grid.SetColSize(grid_table.ColumnsFindString("Score"), dc.GetTextExtent("0000 (0000.0000)")[0] + 5)
+            self.on_size(None)
         self.grid.ForceRefresh()
 
     class RaceGridData(wx.grid.GridTableBase):
