@@ -46,7 +46,7 @@
 # each candidate in each race. The candidate_id should
 # NOT be repeated in another race.
 #
-# Last Modified: February 24, 2016
+# Last Modified: April 21, 2016
 ###############
 import csv
 
@@ -71,6 +71,10 @@ def parse(candidate_file_path, races):
 
         for race in races:
             candidates = []
+            candidates_dropped_out = []
+            if "parser_candidates_droppedout" in race.extended_data():
+                candidates_dropped_out = race.extended_data()["parser_candidates_droppedout"]
+
             if "parser_writein_whitelist" in race.extended_data():
                 write_in_whitelist = race.extended_data()["parser_writein_whitelist"]
                 for candidate in write_in_whitelist:
@@ -82,6 +86,9 @@ def parse(candidate_file_path, races):
 
             for column_index in race_columns[race]:
                 if candidate_file_data[1][column_index].startswith("Write-In"):
+                    continue
+
+                if candidate_file_data[1][column_index].strip() in candidates_dropped_out:
                     continue
 
                 (candidate_name, candidate_party) = candidate_file_data[1][column_index].rsplit("-", 1)
