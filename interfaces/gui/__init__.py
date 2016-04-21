@@ -21,7 +21,7 @@ def run(parsed_arguments):
 
     gui_arguments = parser.parse_args(shlex.split(parsed_arguments.interface_options))
 
-    if gui_arguments.font_size >= 0:
+    if gui_arguments.font_size > 0:
         wx.SystemOptions.SetOption("font-size", gui_arguments.font_size)
 
     # Setup logging in the application.
