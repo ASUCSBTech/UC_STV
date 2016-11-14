@@ -1,5 +1,7 @@
 # UCSB AS Elections Tabulator
-Written by Ryan Tse \<tse@umail.ucsb.edu\>.
+Software by Associated Students, UC Santa Barbara.
+Code - Ryan Tse.
+Project - Sean Lieberman.
 
 A Python-based elections tabulator utilizing a single transferable vote system with support for custom election configurations and dynamic ballot format parsing.
 
