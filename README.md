@@ -3,6 +3,8 @@ Software by Associated Students, UC Santa Barbara.
 Code - Ryan Tse.
 Project - Sean Lieberman.
 
+Contact us - https://www.as.ucsb.edu/stv-contact/
+
 A Python-based elections tabulator utilizing a single transferable vote system with support for custom election configurations and dynamic ballot format parsing.
 
 ## Screenshot
