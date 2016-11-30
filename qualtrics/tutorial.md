@@ -14,7 +14,7 @@ The heart of STV is the ranking of candidates. There are two types of question t
 Create a new question. Make it of the type "Rank Order".
 
 <p align="center">
-![](images/rank-order.png)
+<img src="images/rank-order.png">
 </p>
 
 **Pros**:
@@ -26,19 +26,19 @@ Create a new question. Make it of the type "Rank Order".
 - Text entry ranking is slower and introduces increased possibility of user error
 
 <p align="center">
-![](images/rank-order-options.png)
+<img src="images/rank-order-options.png">
 </p>
 
 Give it 4 items/choices. Change the "Type" to "Text Box" for this example. I've found it works more universally than the other available options, but your experience may vary.
 
 <p align="center">
-![](images/rank-order-options2.png)
+<img src="images/rank-order-options2.png">
 </p>
 
 Validation for this type of question is simple. Change it to "Must Rank Between" with at least 1 and no more than 4. Qualtrics is smart enough to know it can only be numerals.
 
 <p align="center">
-![](images/president-rank-order.png)
+<img src="images/president-rank-order.png">
 </p>
 
 This is what it should look like when we're done with it (after randomization, which we'll go over soon). Change Q1 or Q2 or whatever is in the upper left corner to "President". Do the same for the title of the question. Add your own disclaimer and instructions about voting.
@@ -48,7 +48,7 @@ Give a name to your candidates (and add a party if needed). A write-in candidate
 Now it's time for the alternative question type: "Matrix Table". This is, incidentally, what we use for all of our candidates at UCSB.
 
 <p align="center">
-![](images/matrix-table.png)
+<img src="images/matrix-table.png">
 </p>
 
 **Pros**:
@@ -59,13 +59,13 @@ Now it's time for the alternative question type: "Matrix Table". This is, incide
 - Much more complicated validation rules
 
 <p align="center">
-![](images/matrix-options.png)
+<img src="images/matrix-options.png">
 </p>
 
 *Dropdown List* is the most user friendly option in our experience. A dropdown works to quickly select a candidate on both desktop and mobile. It also requires the least amount of effort for positions with lots of candidates (one of our positions has 13 openings and typically 30+ candidates in the running).
 
 <p align="center">
-![](images/senator-matrix.png)
+<img src="images/senator-matrix.png">
 </p>
 
 This is what things will look like. Change Qx in the upper left corner to "Senator". Do the same for the title of the question. Add your own disclaimer and instructions about voting. This question has 3 positions available (you can rank your #1, #2 and #3).
@@ -73,19 +73,19 @@ This is what things will look like. Change Qx in the upper left corner to "Senat
 As above, give a name/party to your candidates .
 
 <p align="center">
-![](images/senator-scale-points1.png)
+<img src="images/senator-scale-points1.png">
 </p>
 
 Time to edit the scale points (right there at the bottom).
 
 <p align="center">
-![](images/senator-scale-points2.png)
+<img src="images/senator-scale-points2.png">
 </p>
 
 This one is simple. It's 1 2 3 (individually). Those are the choices the voters will be presented with when they select a candidate and rank them. Since the "Matrix Table" question isn't built for only a simple numeric ordering, we have to be explicit with these values.
 
 <p align="center">
-![](images/randomization.png)
+<img src="images/randomization.png">
 </p>
 
 Our candidates have, for years, requested that their names appear in a random order on the ballot. This is simple with Qualtrics.
@@ -93,25 +93,25 @@ Our candidates have, for years, requested that their names appear in a random or
 Select the gear icon next to each question. Pick "Randomization".
 
 <p align="center">
-![](images/randomization2.png)
+<img src="images/randomization2.png">
 </p>
 
 We're going for advanced (don't worry, it's not that advanced).
 
 <p align="center">
-![](images/randomization3.png)
+<img src="images/randomization3.png">
 </p>
 
 Select everyone but the "Write-In" and press the right arrow to send them into the green "Randomize Choices" box. That's it. If you don't have a write-in (or "none of the above") then just select "Randomize the order of all choices" instead of advanced above.
 
 <p align="center">
-![](images/validation.png)
+<img src="images/validation.png">
 </p>
 
 Validation is the tricky part with matrix tables. We can't have people selecting two #1s or a first choice, third choice and eighth choice but nobody in-between.
 
 <p align="center">
-![](images/validation2.png)
+<img src="images/validation2.png">
 </p>
 
 Bear with me. Things are about to get weird.
@@ -144,14 +144,14 @@ Then display error.
 This prevents voters from selecting more than one selection for a specific number (1 count, 2 count, 3 count) as well as preventing them from ranking candidates out of order. This scales easily up and down. It will just take a long while to write out all that logic for a ranking of 1-13.
 
 <p align="center">
-![](images/validation3.png)
+<img src="images/validation3.png">
 </p>
 
 Each of those sections are another "Logic Set" that you need to add (with the "Or If" selection).
 
 <p align="center">
-![](images/validation4.png)
-![](images/validation5.png)
+<img src="images/validation4.png">
+<img src="images/validation5.png">
 </p>
 
 Create a new error message ("Incorrect Total" in the screenshot) to display if the voter violates this validation. Ours is in red.
@@ -165,20 +165,20 @@ Your ballot is done. Test it out to make sure the validation works and that it b
 ## Export
 
 <p align="center">
-![](images/export-data.png)
-![](images/export-data2.png)
+<img src="images/export-data.png">
+<img src="images/export-data2.png">
 </p>
 
 Now we'll be exporting the data in a format the tabulator can read. Goto "Data & Analysis : Data" and select "Export Data".
 
 <p align="center">
-![](images/export-data3.png)
+<img src="images/export-data3.png">
 </p>
 
 We want "Download Data Table" on the left.
 
 <p align="center">
-![](images/export-data4.png)
+<img src="images/export-data4.png">
 </p>
 
 We want a CSV with "Download All Fields" and "Use choice text" selected. This is the final step from within Qualtrics. Now it's time to move onto Excel (or Numbers or Sheets or whatever spreadsheet editor you like that handles unicode well).
@@ -295,7 +295,7 @@ Clear? Great.
 Time to open up the tabulator. The readme file included with the tabulator should show you what software is required and how to start things up. Once the application is open, you will see:
 
 <p align="center">
-![](images/tabulator-load.png)
+<img src="images/tabulator-load.png">
 </p>
 
 Browse for the configuration file we just went over. Select it.
@@ -309,7 +309,7 @@ Click Create.
 ### Getting Results
 
 <p align="center">
-![](images/senators-tabulator.png)
+<img src="images/senators-tabulator.png">
 </p>
 
 Do you see this? Fantastic.
@@ -319,13 +319,13 @@ Do you see this? Fantastic.
 The first round will show you all the first choice votes (and, in this election, our write-in candidate "Ramen" has already been eliminated and their 1 vote about to be redistributed).
 
 <p align="center">
-![](images/senators-round1.png)
+<img src="images/senators-round1.png">
 </p>
 
 Continue through these rounds. During a round where a candidate does not meet the Droop Quota (lower left corner), the lowest vote getter is eliminated and their votes distributed to their next available choices. During a round where a candidate is elected, their excess votes are redistributed to their next available choices.
 
 <p align="center">
-![](images/senators-round4.png)
+<img src="images/senators-round4.png">
 </p>
 
 Cucumber is a winner. They have 1 excess vote (13 when all they needed was 12) that will be redistributed using some fun math that the software handles automagically (watch all the fractional votes tally up).
@@ -333,7 +333,7 @@ Cucumber is a winner. They have 1 excess vote (13 when all they needed was 12) t
 This process continues until all 3 positions have been filled.
 
 <p align="center">
-![](images/senators-round7.png)
+<img src="images/senators-round7.png">
 </p>
 
 Looks like all three parties will be represented in this year's food senate.
