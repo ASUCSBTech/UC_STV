@@ -4,10 +4,8 @@ Moving your online elections to a Single Transferable Voting system (sometimes c
 The first step is to log into your Qualtrics account.
 
 <p align="center">
-![](images/create-project.png)
+<img src="images/create-project.png">
 </p>
-
-<img align="center" src="images/create-project.png">
 
 Create a new project. Call it whatever you like. We just need a blank slate with which to play around.
 
