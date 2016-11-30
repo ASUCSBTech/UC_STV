@@ -7,6 +7,8 @@ The first step is to log into your Qualtrics account.
 ![](images/create-project.png)
 </p>
 
+<img align="center" src="images/create-project.png">
+
 Create a new project. Call it whatever you like. We just need a blank slate with which to play around.
 
 The heart of STV is the ranking of candidates. There are two types of question types we can use to achieve this.
