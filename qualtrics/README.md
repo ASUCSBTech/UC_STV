@@ -342,6 +342,17 @@ Simply change the Race in the upper left corner to move onto the next one. Compl
 
 ## Conclusion
 
+There are significant parts of running an online election that were not covered above:
+
+- Determining eligible voters & gathering their information
+- Creating a portal for voters
+- Setting policy for an election
+- Educational campaigns
+- Voting receipts
+- Lots more
+
+If you have interest in these topics, please use the contact form below.
+
 For more information on STV and the processes we use, here are some good resources:
 
 STV: [Wikipedia](https://en.wikipedia.org/wiki/Single_transferable_vote "STV"), [Video Explanation](https://www.youtube.com/watch?v=l8XOZJkozfI "Animal Kingdom"), [How it Works Video](http://www.fairvote.org/rcv#how_rcv_works "Fairvote Video")
