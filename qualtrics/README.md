@@ -261,6 +261,7 @@ Here it is in its entirety:
         "parser_group": "Senator",
         "parser_writein_fields": 1,
         "parser_writein_whitelist": ["Ramen"],
+	"parser_candidates_droppedout": ["Salad - Vegan Party"],
         "display_order": 1
       }
     }
@@ -283,6 +284,8 @@ Let's break down the variables that matter:
 **parser_writein_fields** - How many write-in fields are included in this position? If zero, you can remove this line entirely.
 
 **parser_writein_whitelist** - For UCSB elections, not all write-in candidates are created equal. They have to register as a candidate before the election begins. Therefore, only the names written here (separated by a comma) are counted in the totals.
+
+**parser_candidates_droppedout** - Candidates often drop out at various points in the election process. To actually remove them from the ballot would be hugely disruptive (and possibly against your by-laws). But to have people still vote for them is also a problem. Using this variable keeps them on the ballot, but removes them entirely from the results. Choices will move to next available. Handy huh.
 
 `Note: If you have a legitimate write-in candidate, you will need to manually correct all the misspellings in the results file. Sorry.`
 

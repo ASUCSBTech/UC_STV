@@ -25,6 +25,7 @@
         "parser_group": "Senator",
         "parser_writein_fields": 1,
         "parser_writein_whitelist": ["Ramen"],
+        "parser_candidates_droppedout": ["Salad - Vegan Party"],
         "display_order": 1
       }
     }
