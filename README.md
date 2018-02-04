@@ -15,7 +15,6 @@ Prerequisites:
 Installation:
 ```
 pip install --upgrade -r requirements.txt
-pip install --upgrade --pre --trusted-host wxpython.org -f http://wxpython.org/Phoenix/snapshot-builds/ wxPython_Phoenix
 ```
 
 ## Usage
@@ -34,7 +33,7 @@ Refer to the ``/data/*/generated/`` folder for each respective directory for a r
 ## Compatibility
 Tested on Mac OS X 10.11.4 and Windows 10 with:
 - Python 3.5.1 (64-bit)
-- wxPython-Phoenix 3.0.3.dev1964+f780b21
+- wxPython 4.0.1
 - jsonschema 2.5.1
 - terminaltables 2.1.0
 
