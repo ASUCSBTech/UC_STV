@@ -21,6 +21,10 @@ pip install --upgrade -r requirements.txt
 The application can be started with: ``python ElectionApplication.py``.
 
 For advanced configuration options, refer to the help documentation available by invoking ``python ElectionApplication.py --help``.
+For example:
+```
+python ElectionApplication.py --interface-options="--font-size=30"
+```
 
 **References:**
 The data format schemas for configuration, candidate, and ballot files can be found in the ``/schemas/`` directory. Configuration, candidate, and ballot file data are automatically compared against the provided JSON schemas prior to usage by the application. To verify a custom configuration/implementation, utilize a service like [JSON Schema Lint](http://jsonschemalint.com/draft4/ "JSON Schema Lint").
