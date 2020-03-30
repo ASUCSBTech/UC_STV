@@ -55,6 +55,10 @@ class WindowMain(wx.Frame):
         self.combo_box_round = None
         self.slider_display_speed = None
 
+        #Font sizer
+        self.label_font = None
+        self.font_sizer = None
+
         # Display grid.
         self.panel_display_grid = None
         self.grid_display = None
@@ -123,7 +127,8 @@ class WindowMain(wx.Frame):
 
         self.panel_display_select = wx.Panel(self.window_panel, wx.ID_ANY)
         self.label_race = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Race")
-        self.label_round = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Round")
+        self.label_round = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Round 1")
+        self.label_font = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Font Size")
         self.label_speed = wx.StaticText(self.panel_display_select, wx.ID_ANY, "Display Speed")
         self.combo_box_race = wx.ComboBox(self.panel_display_select, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
         self.combo_box_round = wx.ComboBox(self.panel_display_select, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
@@ -131,6 +136,9 @@ class WindowMain(wx.Frame):
         self.slider_display_speed = wx.Slider(self.panel_display_select, wx.ID_ANY, 0, 0, 100)
         self.slider_display_speed.SetValue(90)
         self.panel_display_select.Bind(wx.EVT_SLIDER, self.ui_slider_event)
+
+        self.font_sizer = wx.SpinCtrl(self.panel_display_select, value = "13", pos = (335, 18))
+        self.panel_display_select.Bind(wx.EVT_SPINCTRL, self.font_event, self.font_sizer)
 
         self.panel_display_grid = wx.Panel(self.window_panel, wx.ID_ANY)
         self.grid_display = PanelRaceTable(self.panel_display_grid)
@@ -155,15 +163,18 @@ class WindowMain(wx.Frame):
         self.sizer_display_select.Add((20, 1), 0, 0, 0)
         self.sizer_display_select.Add(self.label_race, 0, 0, 0)
         self.sizer_display_select.Add(self.label_round, 0, 0, 0)
-        self.sizer_display_select.Add((20, 20), 0, wx.EXPAND, 0)
+        self.sizer_display_select.Add(self.label_font, 0, 0, 0)
         self.sizer_display_select.Add(self.label_speed, 0, 0, 0)
         self.sizer_display_select.Add((20, 1), 0, 0, 0)
         self.sizer_display_select.Add((20, 1), 0, 0, 0)
         self.sizer_display_select.Add(self.combo_box_race, 0, wx.BOTTOM | wx.RIGHT, 10)
         self.sizer_display_select.Add(self.combo_box_round, 0, wx.BOTTOM, 10)
         self.sizer_display_select.Add((20, 20), 0, wx.EXPAND, 0)
+
+
         self.sizer_display_select.Add(self.slider_display_speed, 0, wx.BOTTOM | wx.EXPAND, 5)
-        self.sizer_display_select.Add((20, 1), 0, 0, 0)
+
+        self.sizer_display_select.Add((20,1), 0, 0, 0)
 
         self.sizer_display_grid = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_display_grid.SetSizer(self.sizer_display_grid)
@@ -235,14 +246,22 @@ class WindowMain(wx.Frame):
             self.change_race(self.combo_box_race_object[self.combo_box_race.GetStringSelection()])
         elif event.GetEventObject() is self.combo_box_round:
             selection_text = self.combo_box_round.GetStringSelection()
+
             if selection_text == "Latest Round":
                 self.change_round(self._current_round.parent().get_round_latest())
+                self.label_round.SetLabel("Round " + str(self._current_round.parent().get_round_latest()))
             else:
                 self.change_round(self.combo_box_round_object[selection_text])
+                self.label_round.SetLabel(selection_text)
         button_state = self._current_round.parent().state() != ElectionRace.COMPLETE
         self.button_complete_race.Enable(button_state)
         self.button_complete_round.Enable(button_state)
         self.button_complete_round.SetFocus()
+
+    def font_event(self, evt):
+        font_size = evt.GetPosition() 
+        self.grid_display.setGridFont(font_size)
+        self.logger.info("Changed font size to: %d\n" % font_size)
 
     def ui_slider_event(self, event):
         if self._current_worker is None or not self._current_worker.is_alive():
@@ -305,8 +324,10 @@ class WindowMain(wx.Frame):
             return
 
         self.change_round(election_race.get_round_latest())
+        self.label_round.SetLabel("Round " + str(election_race.get_round_latest()))
         self.ui_update_rounds(False)
         self.label_quota.SetLabel("Race: " + self.label_quota.EscapeMnemonics(election_race.position()) + "\nRace Winning Quota: " + str(election_race.droop_quota()))
+        self.grid_display.colorReset()
 
     def change_round(self, election_round):
         if election_round is not self._current_round:
@@ -331,20 +352,27 @@ class WindowMain(wx.Frame):
         self.ui_disable_all()
         self.change_round(self._current_round.parent().get_round_latest())
         self.combo_box_round.SetSelection(self.combo_box_round.FindString("Latest Round"))
-
+        self.label_round.SetLabel("Round " + str(self._current_round.parent().get_round_latest()))
         self._current_worker = TabulationThread(self, self._current_round, 50, self.slider_display_speed.GetMax() + 1 - self.slider_display_speed.GetValue(), TabulationThread.TYPE_COMPLETE_ROUND)
         self._current_worker.start()
         self.Bind(EVT_TABULATION_PROGRESS, self.tabulation_on_progress)
         self.Bind(EVT_TABULATION_COMPLETE, self.tabulation_on_complete)
 
     def tabulation_on_progress(self, event):
-        self.grid_display.update(event.table_data, update_layout=False)
+        self.grid_display.update(event.table_data) #update_layout=False
         self.ui_update_statusbar(event.race_state, event.round_state)
+        self.label_round.SetLabel("Round " + str(self._current_round.parent().get_round_latest()))
+        #if(self._current_round.parent().get_round_latest() == self._current_round.parent().rounds()):
+        #    self.grid_display.highlightWinners()
+        #self.grid_display.autoSize()
 
     def tabulation_on_complete(self, event):
         self.change_round(self._current_round.parent().get_round_latest())
         self.ui_update_rounds()
         self.ui_complete_action_done()
+        election_races = self.election.get_race_all()
+        current_race_number = self.combo_box_race.FindString(self._current_round.parent().position())
+        self.grid_display.highlightWinners(election_races[current_race_number].max_winners())
 
 
 class TabulationThread(threading.Thread):
@@ -395,5 +423,4 @@ class TabulationThread(threading.Thread):
                 wx.PostEvent(self._notify_window, TabulationProgressEvent(race_state=race_state, round_state=round_state, table_data=table_data))
             time.sleep(self._processing_delay * 0.0001)
             iteration += 1
-
         self._election_round.parent().run()

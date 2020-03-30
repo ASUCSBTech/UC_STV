@@ -3,4 +3,11 @@
 *.log
 data/ucb/generated/ballots.json
 data/ucb/generated/candidates.json
+data/ucsb/g.enerated/ballot_data.csv
+.DS_Store
+data/.DS_Store
+data/ucsb/.DS_Store
+data/ucsb/generated/.DS_Store
+interfaces/.DS_Store
+qualtrics/.DS_Store
 data/ucsb/generated/ballot_data.csv

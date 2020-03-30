@@ -1,6 +1,7 @@
 import wx
 import wx.grid
 
+from backend.ElectionRace import ElectionRace
 
 class PanelRaceTable(wx.Panel):
     def __init__(self, parent):
@@ -72,10 +73,53 @@ class PanelRaceTable(wx.Panel):
             self.grid.AutoSizeColumns(setAsMin=False)
             dc = wx.MemoryDC()
             dc.SetFont(self.GetFont())
-            self.grid.SetColSize(grid_table.ColumnsFindString("Status"), dc.GetTextExtent("TRANSFERRING")[0] + 5)
+            point_size = self.GetFont().GetPointSize()
+            temp_point_size = 1.5 * point_size
+            self.grid.SetColSize(grid_table.ColumnsFindString("Status"), dc.GetTextExtent("TRANSFERRING")[0] + temp_point_size)
             self.grid.SetColSize(grid_table.ColumnsFindString("Score"), dc.GetTextExtent("0000 (0000.0000)")[0] + 5)
             self.on_size(None)
         self.grid.ForceRefresh()
+
+    def setGridFont(self, font_size):
+        font = self.GetFont()
+        font.SetPointSize(font_size)
+        columns = self.grid.GetNumberCols()
+        rows = self.grid.GetNumberRows()
+
+        for i in range(rows):
+            for j in range(columns-1):
+                if(font.GetPointSize() < 15):
+                    self.grid.SetCellFont(i,j,font)
+                else:
+                    if(j == 2):
+                        font.SetPointSize(15)
+                        self.grid.SetCellFont(i,j,font)
+                    else:
+                        font.SetPointSize(font_size)
+                        self.grid.SetCellFont(i,j,font)
+        self.grid.AutoSize()
+        self.grid.ForceRefresh()
+
+    def highlightWinners(self, max_winners):
+        grid_table = self.grid.GetTable()
+        colour = wx.Colour(255,255,0)
+        columns = self.grid.GetNumberCols()
+        rows = self.grid.GetNumberRows()
+        for i in range(max_winners):
+            for j in range(rows):
+                self.grid.SetCellBackgroundColour(i,j,colour)
+
+
+    def colorReset(self):
+        grid_table = self.grid.GetTable()
+        colour = wx.Colour(255,255,255)
+        columns = self.grid.GetNumberCols()
+        rows = self.grid.GetNumberRows()
+
+        for i in range (rows):
+            for j in range(columns):
+                self.grid.SetCellBackgroundColour(i,j,colour)
+
 
     class RaceGridData(wx.grid.GridTableBase):
         def __init__(self):
@@ -149,7 +193,7 @@ class PanelRaceTable(wx.Panel):
             if grid_table:
                 row_status = grid.GetCellValue(row, grid_table.ColumnsFindString("Status"))
                 if row_status == "WON":
-                    bar_color = wx.BLUE_BRUSH
+                    bar_color = wx.YELLOW_BRUSH
             dc.SetBrush(bar_color)
             dc.DrawRectangle(rect.x, rect.y, rect.width * float(grid.GetCellValue(row, col)), rect.height)
 

@@ -150,3 +150,4 @@ class Election:
 
     def get_race_all(self):
         return self._races
+
