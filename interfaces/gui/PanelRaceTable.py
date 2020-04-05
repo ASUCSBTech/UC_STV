@@ -86,18 +86,20 @@ class PanelRaceTable(wx.Panel):
         columns = self.grid.GetNumberCols()
         rows = self.grid.GetNumberRows()
 
-        for i in range(rows):
-            for j in range(columns-1):
+        for row in range(rows):
+            for column in range(columns-1):
                 if(font.GetPointSize() < 15):
-                    self.grid.SetCellFont(i,j,font)
+                    self.grid.SetCellFont(row,column,font)
                 else:
-                    if(j == 2):
+                    if(column == 2):
                         font.SetPointSize(15)
-                        self.grid.SetCellFont(i,j,font)
+                        self.grid.SetCellFont(row,column,font)
                     else:
                         font.SetPointSize(font_size)
-                        self.grid.SetCellFont(i,j,font)
-        self.grid.AutoSize()
+                        self.grid.SetCellFont(row,column,font)
+            self.grid.AutoSizeRow(row, setAsMin=False)
+        self.grid.AutoSizeColumns(setAsMin=False)
+        self.on_size(None)
         self.grid.ForceRefresh()
 
     def highlightWinners(self, max_winners):

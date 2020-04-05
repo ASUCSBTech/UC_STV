@@ -335,6 +335,7 @@ class WindowMain(wx.Frame):
         self._current_round = election_round
         self.grid_display.update(ElectionRace.get_data_table(election_round))
         self.ui_update_statusbar(election_round.parent().state(), election_round.state())
+        self.grid_display.colorReset()
 
     def complete_current_race(self):
         # Jump to latest round.
@@ -362,9 +363,6 @@ class WindowMain(wx.Frame):
         self.grid_display.update(event.table_data) #update_layout=False
         self.ui_update_statusbar(event.race_state, event.round_state)
         self.label_round.SetLabel("Round " + str(self._current_round.parent().get_round_latest()))
-        #if(self._current_round.parent().get_round_latest() == self._current_round.parent().rounds()):
-        #    self.grid_display.highlightWinners()
-        #self.grid_display.autoSize()
 
     def tabulation_on_complete(self, event):
         self.change_round(self._current_round.parent().get_round_latest())
@@ -372,8 +370,9 @@ class WindowMain(wx.Frame):
         self.ui_complete_action_done()
         election_races = self.election.get_race_all()
         current_race_number = self.combo_box_race.FindString(self._current_round.parent().position())
-        self.grid_display.highlightWinners(election_races[current_race_number].max_winners())
-
+        this_round = self._current_round.parent().get_round_latest().round()
+        if(self._current_round.parent().state() == ElectionRace.COMPLETE):
+            self.grid_display.highlightWinners(election_races[current_race_number].max_winners())
 
 class TabulationThread(threading.Thread):
     (TYPE_COMPLETE_ROUND, TYPE_COMPLETE_RACE) = range(2)
