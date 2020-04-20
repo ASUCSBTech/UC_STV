@@ -49,6 +49,7 @@ class PanelRaceTable(wx.Panel):
 
         self.SetSizer(self.sizer)
         self.sizer.Layout()
+        self.set_party_color()
 
     def on_size(self, event):
         columns = self.grid.GetNumberCols()
@@ -77,8 +78,24 @@ class PanelRaceTable(wx.Panel):
             temp_point_size = 1.5 * point_size
             self.grid.SetColSize(grid_table.ColumnsFindString("Status"), dc.GetTextExtent("TRANSFERRING")[0] + temp_point_size)
             self.grid.SetColSize(grid_table.ColumnsFindString("Score"), dc.GetTextExtent("0000 (0000.0000)")[0] + 5)
+            self.set_party_color()
             self.on_size(None)
         self.grid.ForceRefresh()
+
+    def set_party_color(self):
+        #GetCellValue (self, row, col)
+        columns = self.grid.GetNumberCols()
+        rows = self.grid.GetNumberRows()
+        for row in range(rows):
+            party = self.grid.GetCellValue(row, 1)
+            if(party == "Campus United"):
+                colour = wx.Colour(173,221,230)
+            elif(party == "Isla Vista Party"):
+                colour = wx.Colour(255,192,203)
+            else:
+                colour = wx.Colour(0,255,128)
+            for column in range(columns - 1):
+                self.grid.SetCellBackgroundColour(row,column,colour)
 
     def setGridFont(self, font_size):
         font = self.GetFont()
@@ -108,7 +125,7 @@ class PanelRaceTable(wx.Panel):
         columns = self.grid.GetNumberCols()
         rows = self.grid.GetNumberRows()
         for i in range(max_winners):
-            for j in range(rows):
+            for j in range(columns):
                 self.grid.SetCellBackgroundColour(i,j,colour)
 
 

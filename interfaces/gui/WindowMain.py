@@ -327,7 +327,7 @@ class WindowMain(wx.Frame):
         self.label_round.SetLabel("Round " + str(election_race.get_round_latest()))
         self.ui_update_rounds(False)
         self.label_quota.SetLabel("Race: " + self.label_quota.EscapeMnemonics(election_race.position()) + "\nRace Winning Quota: " + str(election_race.droop_quota()))
-        self.grid_display.colorReset()
+        self.grid_display.set_party_color()
 
     def change_round(self, election_round):
         if election_round is not self._current_round:
