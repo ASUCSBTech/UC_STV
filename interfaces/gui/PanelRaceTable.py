@@ -126,7 +126,8 @@ class PanelRaceTable(wx.Panel):
         rows = self.grid.GetNumberRows()
         for i in range(max_winners):
             for j in range(columns):
-                self.grid.SetCellBackgroundColour(i,j,colour)
+                if(j != 1):
+                    self.grid.SetCellBackgroundColour(i,j,colour)
 
 
     def colorReset(self):
@@ -136,8 +137,7 @@ class PanelRaceTable(wx.Panel):
         rows = self.grid.GetNumberRows()
 
         for i in range (rows):
-            for j in range(columns):
-                self.grid.SetCellBackgroundColour(i,j,colour)
+            self.grid.SetCellBackgroundColour(i,4,colour)
 
 
     class RaceGridData(wx.grid.GridTableBase):
