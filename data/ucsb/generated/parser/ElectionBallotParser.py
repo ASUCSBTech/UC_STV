@@ -61,7 +61,6 @@ import csv
 class WriteInInvalid:
     pass
 
-
 class CandidateDroppedOut:
     pass
 
@@ -125,7 +124,7 @@ def parse(ballot_file_path, races):
                             race_order = int(ballot_file_data[row][column])
                             candidate_id = ballot_file_data[1][column].strip()
                             if candidate_id not in candidates_dropped_out:
-                                race_preferences[race_order] = race.get_candidate(candidate_id).id()
+                                race_preferences[race_order] = race.get_candidate(ballot_file_data[1][column].strip()).id()
                             else:
                                 race_preferences[race_order] = candidate_dropped_out
                     except ValueError:
